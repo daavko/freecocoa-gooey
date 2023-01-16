@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
-import { BehaviorSubject, map } from 'rxjs';
+import { BehaviorSubject, combineLatest, map, Observable } from 'rxjs';
 import { AbstractControl, FormControl, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { RulesetLoadState, RulesetPresetName, rulesetPresets } from 'src/app/models/ruleset-picker.model';
 import { RulesetFetchService } from 'src/app/services/ruleset-fetch.service';
@@ -64,15 +64,17 @@ export class RulesetPickerComponent implements OnInit {
             noGithubComUrl
         ])
     });
-    public readonly readonlyInputs$ = this.pickerForm.controls.preset.valueChanges.pipe(
-        map((value) => value !== 'none')
-    );
+    public readonly readonlyInputs$: Observable<boolean>;
 
     private readonly loadState = new BehaviorSubject<RulesetLoadState>('beforeLoad');
 
     public readonly loadState$ = this.loadState.asObservable();
 
-    constructor(private rulesetFetch: RulesetFetchService, private combatCalculator: CombatCalculationService) {}
+    constructor(private rulesetFetch: RulesetFetchService, private combatCalculator: CombatCalculationService) {
+        this.readonlyInputs$ = combineLatest([this.pickerForm.controls.preset.valueChanges, this.loadState$]).pipe(
+            map(([formValue, loadState]) => formValue !== 'none' || loadState === 'loading')
+        );
+    }
 
     public ngOnInit(): void {
         this.pickerForm.controls.preset.valueChanges.subscribe((value) => {
@@ -81,13 +83,6 @@ export class RulesetPickerComponent implements OnInit {
                 this.pickerForm.controls.effectsUrl.setValue(effectsUrl);
                 this.pickerForm.controls.terrainUrl.setValue(terrainUrl);
                 this.pickerForm.controls.unitsUrl.setValue(unitsUrl);
-            }
-        });
-        this.loadState$.subscribe((value) => {
-            if (value === 'loading') {
-                this.pickerForm.disable();
-            } else {
-                this.pickerForm.enable();
             }
         });
     }
