@@ -1,0 +1,25 @@
+:host {
+    display: block;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+}
+
+.flex {
+    display: flex;
+    gap: 8px;
+}
+
+.flex-align-center {
+    align-items: center;
+}
+
+.flex-grow {
+    flex-grow: 1;
+}
+
+.nomargin {
+    margin: 0;
+}

@@ -1,0 +1,43 @@
+<form [formGroup]="attackerForm">
+    <div class="flex">
+        <mat-form-field>
+            <mat-label>Attacking unit</mat-label>
+            <mat-select formControlName="unit">
+                <mat-option>Select a unit</mat-option>
+                <mat-option *ngFor="let option of units$ | async" [value]="option.id">{{ option.name }}</mat-option>
+            </mat-select>
+        </mat-form-field>
+        <mat-form-field>
+            <mat-label>Veteran level</mat-label>
+            <mat-select formControlName="veteran">
+                <mat-option>Select a level</mat-option>
+                <mat-option *ngFor="let level of attackerVeteranLevels$ | async" [value]="level.powerFactor">{{
+                    level.name
+                }}</mat-option>
+            </mat-select>
+        </mat-form-field>
+    </div>
+    <div class="flex flex-align-center">
+        <p class="nomargin">Attacker HP</p>
+        <mat-slider
+            class="flex-grow"
+            formControlName="hp"
+            min="0"
+            [max]="(attackerMaxHp$ | async) ?? 0"
+            step="1"
+            thumbLabel
+            tickInterval="1"></mat-slider>
+    </div>
+    <div class="flex flex-align-center">
+        <p class="nomargin">Remaining moves</p>
+        <mat-slider
+            class="flex-grow"
+            formControlName="moves"
+            min="0"
+            [max]="(ruleset$ | async)?.moveFrags ?? 0"
+            step="1"
+            thumbLabel
+            [displayWith]="formatMoves.bind(this)"
+            tickInterval="1"></mat-slider>
+    </div>
+</form>

@@ -1,1 +1,36 @@
-<p>It werkz!</p>
+<div class="app-container">
+    <div class="main-title">
+        <h1>Daavko's Freeciv21 combat calculator</h1>
+        <p>
+            Disclaimer: Author is not responsible for accuracy. Feel free to report any issues you find, but don't cry
+            to me if you lose any battles due to inaccuracies in this calculator
+        </p>
+        <p>
+            Not implemented: unit-vs-unit bonuses (the "bonuses" field in the unit definition - used for
+            Pikeman-vs-Horses, Destroyer-vs-Submarine, and AEGIS-vs-Air), expect wrong results
+        </p>
+        <p>Not implemented: Defense bonus from rivers</p>
+        <p>
+            Note: Diplomat, Spy, and Operative have wrong veteran level names, due to the ruleset format being stupid
+            (and I can't be bothered to write a complete parser)
+        </p>
+    </div>
+    <app-ruleset-picker></app-ruleset-picker>
+    <div>
+        <div class="unit-info-container">
+            <div>
+                <h2>Attacking unit info</h2>
+                <app-attacker-form></app-attacker-form>
+                <h2>Defending unit info</h2>
+                <app-defender-form></app-defender-form>
+            </div>
+
+            <div>
+                <h2>Results</h2>
+                <ng-container *ngIf="combatResults$ | async as results">
+                    <p>Win chance: {{ results.winChance * 100 | number : '1.0-4' }}%</p>
+                </ng-container>
+            </div>
+        </div>
+    </div>
+</div>

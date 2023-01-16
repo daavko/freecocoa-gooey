@@ -1,0 +1,15 @@
+:host {
+    display: block;
+}
+
+.ruleset-picker__container {
+    display: flex;
+    flex-direction: column;
+}
+
+.ruleset-picker__send {
+    mat-spinner {
+        display: inline-block;
+        margin-right: 8px;
+    }
+}

@@ -1,0 +1,67 @@
+<form [formGroup]="defenderForm">
+    <div class="flex">
+        <mat-form-field>
+            <mat-label>Defending unit</mat-label>
+            <mat-select formControlName="unit">
+                <mat-option>Select a unit</mat-option>
+                <mat-option *ngFor="let option of units$ | async" [value]="option.id">{{ option.name }}</mat-option>
+            </mat-select>
+        </mat-form-field>
+        <mat-form-field>
+            <mat-label>Veteran level</mat-label>
+            <mat-select formControlName="veteran">
+                <mat-option>Select a level</mat-option>
+                <mat-option *ngFor="let level of defenderVeteranLevels$ | async" [value]="level.powerFactor">{{
+                    level.name
+                }}</mat-option>
+            </mat-select>
+        </mat-form-field>
+    </div>
+    <div class="flex flex-align-center">
+        <p class="nomargin">Defender HP</p>
+        <mat-slider
+            class="flex-grow"
+            formControlName="hp"
+            min="0"
+            [max]="(defenderMaxHp$ | async) ?? 0"
+            step="1"
+            value="5"
+            thumbLabel
+            tickInterval="1"></mat-slider>
+    </div>
+    <mat-form-field>
+        <mat-label>Terrain</mat-label>
+        <mat-select formControlName="terrain">
+            <mat-option>Select a terrain</mat-option>
+            <mat-option *ngFor="let terrain of (ruleset$ | async)?.terrainTypes" [value]="terrain.id">{{
+                terrain.name
+            }}</mat-option>
+        </mat-select>
+    </mat-form-field>
+    <div class="flex flex-align-center">
+        <mat-checkbox formControlName="isInCity">Inside a city</mat-checkbox>
+        <mat-form-field class="ml-auto">
+            <mat-label>City size</mat-label>
+            <input matInput formControlName="citySize" type="number" min="1" max="99" />
+        </mat-form-field>
+    </div>
+    <mat-checkbox formControlName="isFortified">Fortified</mat-checkbox>
+    <div class="horizontal-spacer"></div>
+    <div class="grid-twocol" formArrayName="extras">
+        <mat-checkbox *ngFor="let extra of extras$ | async; let i = index" [formControlName]="i"
+            >Tile has {{ extra }}</mat-checkbox
+        >
+    </div>
+    <div class="horizontal-spacer"></div>
+    <div class="grid-twocol" formArrayName="buildings">
+        <mat-checkbox *ngFor="let building of buildings$ | async; let i = index" [formControlName]="i"
+            >City has {{ building }}</mat-checkbox
+        >
+    </div>
+    <div class="horizontal-spacer"></div>
+    <div class="grid-twocol" formArrayName="wonders">
+        <mat-checkbox *ngFor="let wonder of wonders$ | async; let i = index" [formControlName]="i"
+            >Player has {{ wonder }}</mat-checkbox
+        >
+    </div>
+</form>
