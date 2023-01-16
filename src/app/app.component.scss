@@ -1,0 +1,22 @@
+:host {
+    display: block;
+}
+
+.app-container {
+    max-width: 1200px;
+    margin-inline: auto;
+    display: grid;
+    grid-template-columns: 400px 1fr;
+    padding: 32px;
+    gap: 32px;
+}
+
+.main-title {
+    grid-column: span 2;
+}
+
+.unit-info-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}

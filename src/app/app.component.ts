@@ -1,4 +1,7 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { CombatCalculationService } from 'src/app/services/combat-calculation.service';
+import { Observable } from 'rxjs';
+import { CombatResults } from 'src/app/models/combat-info.model';
 
 @Component({
     selector: 'app-root',
@@ -7,5 +10,8 @@ import { Component, ChangeDetectionStrategy } from '@angular/core';
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AppComponent {
-    public title = 'freecocoa-gooey';
+    public readonly combatResults$: Observable<CombatResults>;
+    constructor(private combatCalculation: CombatCalculationService) {
+        this.combatResults$ = this.combatCalculation.combatResults$;
+    }
 }
