@@ -103,7 +103,7 @@ export class CombatCalculationService {
             let attackerFirepower = attackerUnit.firepower;
             let defenderFirepower = defenderUnit.firepower;
 
-            if (attackerUnit.flags.includes('CityBuster')) {
+            if (attackerUnit.flags.includes('CityBuster') && defenderInfo.isInCity) {
                 attackerFirepower *= 2;
             }
 
@@ -111,7 +111,7 @@ export class CombatCalculationService {
                 attackerFirepower = 1;
             }
 
-            if (defenderUnit.flags.includes('BadCityDefender')) {
+            if (defenderUnit.flags.includes('BadCityDefender') && defenderInfo.isInCity) {
                 attackerFirepower *= 2;
                 defenderFirepower = 1;
             }
