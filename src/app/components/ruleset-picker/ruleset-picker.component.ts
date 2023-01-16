@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
-import { BehaviorSubject, combineLatest, filter, map, Subject, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, map } from 'rxjs';
 import { AbstractControl, FormControl, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { RulesetLoadState, RulesetPresetName, rulesetPresets } from 'src/app/models/ruleset-picker.model';
 import { RulesetFetchService } from 'src/app/services/ruleset-fetch.service';
@@ -93,8 +93,8 @@ export class RulesetPickerComponent implements OnInit {
     }
 
     public loadRuleset(): void {
-        this.loadState.next('loading');
         const { effectsUrl, terrainUrl, unitsUrl } = this.pickerForm.getRawValue();
+        this.loadState.next('loading');
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- safe, we validate beforehand
         this.rulesetFetch.fetchRuleset(effectsUrl!, terrainUrl!, unitsUrl!).subscribe({
             next: (ruleset) => {
