@@ -20,4 +20,12 @@ export interface DefenderInfo {
 
 export interface CombatResults {
     winChance: number;
+    breakdown: CombatResultsBreakdown;
+}
+
+export interface CombatResultsBreakdown {
+    attackPower: number;
+    defensePower: number;
+    defenseBonusEffect: number;
+    fortifyBonusEffect: number;
 }

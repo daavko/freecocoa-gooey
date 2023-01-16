@@ -91,6 +91,7 @@ export class CombatCalculationService {
 
             const attackPower = this.getAttackPower(ruleset, attackerUnit, attackerInfo);
             let defensePower = this.getDefensePower(terrain, defenderUnit, defenderUnitClass, defenderInfo);
+            const breakdownDefensePower = defensePower;
 
             const defenseBonusEffect = 100 + this.resolveDefenseEffects(defendEffects, attackerUnit, defenderInfo);
             const fortifyDefenseBonusEffect =
@@ -115,7 +116,7 @@ export class CombatCalculationService {
                 defenderFirepower = 1;
             }
 
-            let winChance: number;
+            let winChance: number | undefined;
             if (attackerFirepower === 0) {
                 winChance = 0;
             } else if (defenderFirepower === 0) {
@@ -147,9 +148,16 @@ export class CombatCalculationService {
 
             console.log(accumProb);
 
-            return {
-                winChance: accumProb
+            const result: CombatResults = {
+                winChance: winChance !== undefined ? winChance : accumProb,
+                breakdown: {
+                    attackPower,
+                    defensePower: breakdownDefensePower,
+                    defenseBonusEffect: defenseBonusEffect - 100,
+                    fortifyBonusEffect: fortifyDefenseBonusEffect - 100
+                }
             };
+            return result;
         })
     );
 
