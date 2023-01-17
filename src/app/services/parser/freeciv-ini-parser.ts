@@ -1,5 +1,4 @@
-import { CstParser, ParserMethod } from 'chevrotain';
-import { CstNode } from '@chevrotain/types';
+import { CstParser, ParserMethod, CstNode } from 'chevrotain';
 import { FREECIV_INI_TOKENS, FreecivToken } from './parser-constants';
 
 export class FreecivIniParser extends CstParser {
