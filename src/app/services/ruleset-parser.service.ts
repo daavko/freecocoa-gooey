@@ -518,9 +518,8 @@ export class RulesetParserService {
 
     private fileCompatible(lines: string[]): boolean {
         // missing double quote at the end of options string is intentional, there may be other options in there
-        const hasCorrectOptions =
-            lines.find((line) => line.startsWith('options="+Freeciv-ruleset-Devel-2017.Jan.02')) !== undefined;
-        const hasCorrectVersion = lines.find((line) => line.startsWith('format_version=20')) !== undefined;
+        const hasCorrectOptions = lines.some((line) => line.startsWith('options="+Freeciv-ruleset-Devel-2017.Jan.02'));
+        const hasCorrectVersion = lines.some((line) => line.startsWith('format_version=20'));
         return hasCorrectOptions && hasCorrectVersion;
     }
 
