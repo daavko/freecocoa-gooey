@@ -24,7 +24,7 @@ export class RulesetFetchService {
                     const parsedUnits = FreecivIniLexer.tokenize(units);
                     console.log('Lexed units', parsedUnits);
                     parser.input = parsedUnits.tokens;
-                    const out = parser.IniContents();
+                    const out = parser.iniContents();
                     console.log('Parsed units', out, parser.errors);
                 } catch (e) {
                     console.error('Unable to parse units with Chevrotain', e);
@@ -33,7 +33,7 @@ export class RulesetFetchService {
                     const parsedTerrain = FreecivIniLexer.tokenize(terrain);
                     console.log('Lexed terrain', parsedTerrain);
                     parser.input = parsedTerrain.tokens;
-                    const out = parser.IniContents();
+                    const out = parser.iniContents();
                     console.log('Parsed terrain', out, parser.errors);
                 } catch (e) {
                     console.error('Unable to parse terrain with Chevrotain', e);
@@ -42,7 +42,7 @@ export class RulesetFetchService {
                     const parsedEffects = FreecivIniLexer.tokenize(effects);
                     console.log('Lexed effects', parsedEffects);
                     parser.input = parsedEffects.tokens;
-                    const out = parser.IniContents();
+                    const out = parser.iniContents();
                     console.log('Parsed effects', out, parser.errors);
                 } catch (e) {
                     console.error('Unable to parse effects with Chevrotain', e);
