@@ -1,4 +1,4 @@
-import { CstParser, ParserMethod, CstNode } from 'chevrotain';
+import { CstParser, ParserMethod, CstNode, IToken } from 'chevrotain';
 import { FREECIV_INI_TOKENS, FreecivToken } from './parser-constants';
 
 export class FreecivIniParser extends CstParser {
@@ -30,19 +30,19 @@ export class FreecivIniParser extends CstParser {
             this.CONSUME(FreecivToken.equals);
             this.OR([
                 {
-                    GATE: () => this.LA(2).tokenType !== FreecivToken.comma,
-                    ALT: () => this.SUBRULE(this.IniValue)
+                    GATE: (): boolean => this.LA(2).tokenType !== FreecivToken.comma,
+                    ALT: (): CstNode => this.SUBRULE(this.IniValue)
                 },
-                { ALT: () => this.SUBRULE(this.IniValueList) },
-                { ALT: () => this.SUBRULE(this.IniTable) }
+                { ALT: (): CstNode => this.SUBRULE(this.IniValueList) },
+                { ALT: (): CstNode => this.SUBRULE(this.IniTable) }
             ]);
         });
 
         this.RULE('IniValue', () => {
             this.OR([
-                { ALT: () => this.CONSUME(FreecivToken.booleanValue) },
-                { ALT: () => this.CONSUME(FreecivToken.numberValue) },
-                { ALT: () => this.CONSUME(FreecivToken.stringValue) }
+                { ALT: (): IToken => this.CONSUME(FreecivToken.booleanValue) },
+                { ALT: (): IToken => this.CONSUME(FreecivToken.numberValue) },
+                { ALT: (): IToken => this.CONSUME(FreecivToken.stringValue) }
             ]);
         });
 
@@ -65,8 +65,8 @@ export class FreecivIniParser extends CstParser {
             this.MANY({
                 DEF: () =>
                     this.OR([
-                        { ALT: () => this.SUBRULE(this.IniSection) },
-                        { ALT: () => this.SUBRULE(this.IniFileInclusion) }
+                        { ALT: (): CstNode => this.SUBRULE(this.IniSection) },
+                        { ALT: (): CstNode => this.SUBRULE(this.IniFileInclusion) }
                     ])
             });
         });
