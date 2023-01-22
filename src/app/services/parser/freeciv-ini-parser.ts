@@ -2,43 +2,43 @@ import { CstParser, ParserMethod, CstNode, IToken } from 'chevrotain';
 import { FREECIV_INI_TOKENS, FreecivToken } from './parser-constants';
 
 export class FreecivIniParser extends CstParser {
-    public IniFileInclusion!: ParserMethod<unknown[], CstNode>;
-    public IniSection!: ParserMethod<unknown[], CstNode>;
-    public IniEntry!: ParserMethod<unknown[], CstNode>;
-    public IniValue!: ParserMethod<unknown[], CstNode>;
-    public IniValueList!: ParserMethod<unknown[], CstNode>;
-    public IniTable!: ParserMethod<unknown[], CstNode>;
-    public IniContents!: ParserMethod<unknown[], CstNode>;
+    public iniFileInclusion!: ParserMethod<unknown[], CstNode>;
+    public iniSection!: ParserMethod<unknown[], CstNode>;
+    public iniEntry!: ParserMethod<unknown[], CstNode>;
+    public iniValue!: ParserMethod<unknown[], CstNode>;
+    public iniValueList!: ParserMethod<unknown[], CstNode>;
+    public iniTable!: ParserMethod<unknown[], CstNode>;
+    public iniContents!: ParserMethod<unknown[], CstNode>;
 
     constructor() {
         super(FREECIV_INI_TOKENS);
 
-        this.RULE('IniFileInclusion', () => {
+        this.RULE('iniFileInclusion', () => {
             this.CONSUME(FreecivToken.fileInclusionMarker);
             this.CONSUME(FreecivToken.stringValue);
         });
 
-        this.RULE('IniSection', () => {
+        this.RULE('iniSection', () => {
             this.CONSUME(FreecivToken.sectionName);
             this.MANY({
-                DEF: () => this.SUBRULE(this.IniEntry)
+                DEF: () => this.SUBRULE(this.iniEntry)
             });
         });
 
-        this.RULE('IniEntry', () => {
+        this.RULE('iniEntry', () => {
             this.CONSUME(FreecivToken.entryName);
             this.CONSUME(FreecivToken.equals);
             this.OR([
                 {
                     GATE: (): boolean => this.LA(2).tokenType !== FreecivToken.comma,
-                    ALT: (): CstNode => this.SUBRULE(this.IniValue)
+                    ALT: (): CstNode => this.SUBRULE(this.iniValue)
                 },
-                { ALT: (): CstNode => this.SUBRULE(this.IniValueList) },
-                { ALT: (): CstNode => this.SUBRULE(this.IniTable) }
+                { ALT: (): CstNode => this.SUBRULE(this.iniValueList) },
+                { ALT: (): CstNode => this.SUBRULE(this.iniValue) }
             ]);
         });
 
-        this.RULE('IniValue', () => {
+        this.RULE('iniValue', () => {
             this.OR([
                 { ALT: (): IToken => this.CONSUME(FreecivToken.booleanValue) },
                 { ALT: (): IToken => this.CONSUME(FreecivToken.numberValue) },
@@ -46,27 +46,27 @@ export class FreecivIniParser extends CstParser {
             ]);
         });
 
-        this.RULE('IniValueList', () => {
+        this.RULE('iniValueList', () => {
             this.AT_LEAST_ONE_SEP({
                 SEP: FreecivToken.comma,
-                DEF: () => this.SUBRULE(this.IniValue)
+                DEF: () => this.SUBRULE(this.iniValue)
             });
         });
 
-        this.RULE('IniTable', () => {
+        this.RULE('iniTable', () => {
             this.CONSUME(FreecivToken.braceOpening);
             this.MANY({
-                DEF: () => this.SUBRULE(this.IniValueList)
+                DEF: () => this.SUBRULE(this.iniValueList)
             });
             this.CONSUME(FreecivToken.braceClosing);
         });
 
-        this.RULE('IniContents', () => {
+        this.RULE('iniContents', () => {
             this.MANY({
                 DEF: () =>
                     this.OR([
-                        { ALT: (): CstNode => this.SUBRULE(this.IniSection) },
-                        { ALT: (): CstNode => this.SUBRULE(this.IniFileInclusion) }
+                        { ALT: (): CstNode => this.SUBRULE(this.iniSection) },
+                        { ALT: (): CstNode => this.SUBRULE(this.iniFileInclusion) }
                     ])
             });
         });
