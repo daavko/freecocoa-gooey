@@ -33,8 +33,7 @@ export class FreecivIniParser extends CstParser {
                     GATE: (): boolean => this.LA(2).tokenType !== FreecivToken.comma,
                     ALT: (): CstNode => this.SUBRULE(this.iniValue)
                 },
-                { ALT: (): CstNode => this.SUBRULE(this.iniValueList) },
-                { ALT: (): CstNode => this.SUBRULE(this.iniValue) }
+                { ALT: (): CstNode => this.SUBRULE(this.iniValueList) }
             ]);
         });
 
