@@ -1,4 +1,9 @@
 @use '@angular/material' as mat;
+@use 'theme';
+
+* {
+    box-sizing: border-box;
+}
 
 html,
 body {
@@ -14,18 +19,4 @@ a {
 }
 
 @include mat.core();
-
-$my-primary: mat.define-palette(mat.$light-blue-palette, 500);
-$my-accent: mat.define-palette(mat.$amber-palette, A200, A100, A400);
-
-$my-theme: mat.define-dark-theme(
-    (
-        color: (
-            primary: $my-primary,
-            accent: $my-accent
-        ),
-        typography: mat.define-typography-config()
-    )
-);
-
-@include mat.all-component-themes($my-theme);
+@include mat.all-component-themes(theme.$my-theme);
