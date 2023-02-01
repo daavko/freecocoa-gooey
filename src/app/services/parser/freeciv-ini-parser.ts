@@ -1,5 +1,5 @@
 import { CstParser, ParserMethod, CstNode, IToken } from 'chevrotain';
-import { FREECIV_INI_TOKENS, FreecivToken } from './parser-constants';
+import { FREECIV_INI_TOKENS, FreecivToken } from 'src/app/services/parser/freeciv-ini-lexer';
 
 export class FreecivIniParser extends CstParser {
     public iniFileInclusion!: ParserMethod<unknown[], CstNode>;
@@ -33,7 +33,8 @@ export class FreecivIniParser extends CstParser {
                     GATE: (): boolean => this.LA(2).tokenType !== FreecivToken.comma,
                     ALT: (): CstNode => this.SUBRULE(this.iniValue)
                 },
-                { ALT: (): CstNode => this.SUBRULE(this.iniValueList) }
+                { ALT: (): CstNode => this.SUBRULE(this.iniValueList) },
+                { ALT: (): CstNode => this.SUBRULE(this.iniTable) }
             ]);
         });
 
