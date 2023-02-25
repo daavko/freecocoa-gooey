@@ -11,7 +11,7 @@
             <mat-label>Veteran level</mat-label>
             <mat-select formControlName="veteran">
                 <mat-option>Select a level</mat-option>
-                <mat-option *ngFor="let level of attackerVeteranLevels$ | async" [value]="level.powerFactor">{{
+                <mat-option *ngFor="let level of attackerVeteranLevels$ | async" [value]="level">{{
                     level.name
                 }}</mat-option>
             </mat-select>

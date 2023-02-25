@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { CombatCalculationService } from 'src/app/services/combat-calculation.service';
 import { Observable } from 'rxjs';
-import { CombatResults } from 'src/app/models/combat-info.model';
+import { CombatResultStatistics } from 'src/app/models/combat-info.model';
 
 @Component({
     selector: 'app-root',
@@ -10,7 +10,7 @@ import { CombatResults } from 'src/app/models/combat-info.model';
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AppComponent {
-    public readonly combatResults$: Observable<CombatResults>;
+    public readonly combatResults$: Observable<CombatResultStatistics>;
     constructor(private combatCalculation: CombatCalculationService) {
         this.combatResults$ = this.combatCalculation.combatResults$;
     }

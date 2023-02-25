@@ -158,14 +158,19 @@ export class RulesetFetchService {
         });
     }
 
-    private mergeVeterancyNamesAndPowerFactors(names: IniValueList, powerFactors: IniValueList): VeteranLevel[] {
+    private mergeVeterancyNamesAndPowerFactors(
+        names: IniValueList,
+        powerFactors: IniValueList,
+        baseRaiseChances: IniValueList
+    ): VeteranLevel[] {
         if (names.length !== powerFactors.length) {
             throw new Error('Found veterancy names and power factors of differing lengths');
         }
 
         return names.map((name, i) => ({
             name: this.cleanTranslatableName(rawValueAsString(name)),
-            powerFactor: rawValueAsNumber(powerFactors[i])
+            powerFactor: rawValueAsNumber(powerFactors[i]),
+            baseRaiseChance: rawValueAsNumber(baseRaiseChances[i])
         }));
     }
 
@@ -215,11 +220,21 @@ export class RulesetFetchService {
 
                 const vetNamesEntry = findPossibleEntry(section, 'veteran_names');
                 const vetPowerFactsEntry = findPossibleEntry(section, 'veteran_power_fact');
+                const vetBaseRaiseChancesEntry = findPossibleEntry(section, 'veteran_base_raise_chance');
                 let veteranLevels: VeteranLevel[] = [];
-                if (vetNamesEntry !== undefined && vetPowerFactsEntry !== undefined) {
+                if (
+                    vetNamesEntry !== undefined &&
+                    vetPowerFactsEntry !== undefined &&
+                    vetBaseRaiseChancesEntry !== undefined
+                ) {
                     const vetNames = entryValueAsValueList(vetNamesEntry);
                     const vetPowerFacts = entryValueAsValueList(vetPowerFactsEntry);
-                    veteranLevels = this.mergeVeterancyNamesAndPowerFactors(vetNames, vetPowerFacts);
+                    const vetBaseRaiseChances = entryValueAsValueList(vetBaseRaiseChancesEntry);
+                    veteranLevels = this.mergeVeterancyNamesAndPowerFactors(
+                        vetNames,
+                        vetPowerFacts,
+                        vetBaseRaiseChances
+                    );
                 }
 
                 return {
@@ -240,7 +255,10 @@ export class RulesetFetchService {
         const veteranSystemSection = findGuaranteedSection(file, 'veteran_system');
         const vetNames = entryValueAsValueList(findGuaranteedEntry(veteranSystemSection, 'veteran_names'));
         const vetPowerFacts = entryValueAsValueList(findGuaranteedEntry(veteranSystemSection, 'veteran_power_fact'));
-        const vetLevels = this.mergeVeterancyNamesAndPowerFactors(vetNames, vetPowerFacts);
+        const vetBaseRaiseChances = entryValueAsValueList(
+            findGuaranteedEntry(veteranSystemSection, 'veteran_base_raise_chance')
+        );
+        const vetLevels = this.mergeVeterancyNamesAndPowerFactors(vetNames, vetPowerFacts, vetBaseRaiseChances);
 
         return [unitClasses, unitTypes, vetLevels];
     }

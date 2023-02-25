@@ -1,7 +1,24 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, combineLatest, filter, map, Observable } from 'rxjs';
-import { Effect, RequirementRange, Ruleset, Terrain, UnitClass, UnitType } from 'src/app/models/ruleset.model';
-import { AttackerInfo, CombatResults, DefenderInfo } from 'src/app/models/combat-info.model';
+import {
+    RequirementRange,
+    Ruleset,
+    Terrain,
+    UnitClass,
+    UnitType,
+    UnitTypeBonus,
+    VeteranLevel
+} from 'src/app/models/ruleset.model';
+import {
+    AttackerInfo,
+    CombatResultStatistics,
+    CombatRoundResult,
+    DefenderInfo,
+    WorldState
+} from 'src/app/models/combat-info.model';
+import { EffectResolverService } from 'src/app/services/effect-resolver.service';
+import { getTerrainById, getUnitClassByName, getUnitTypeById } from 'src/app/utils/ruleset-utils';
+import { randomInt } from 'src/app/utils/number-utils';
 
 // I don't know why this exists, but it does
 const POWER_FACTOR = 10;
@@ -18,9 +35,6 @@ export class CombatCalculationService {
     public readonly ruleset$ = this.ruleset.asObservable().pipe(filter((value): value is Ruleset => value !== null));
     public readonly defendEffects$ = this.ruleset$.pipe(
         map((ruleset) => ruleset.effects.filter((effect) => effect.type === 'Defend_Bonus'))
-    );
-    public readonly fortifyDefendEffects$ = this.ruleset$.pipe(
-        map((ruleset) => ruleset.effects.filter((effect) => effect.type === 'Fortify_Defense_Bonus'))
     );
     public readonly defendExtras$ = this.defendEffects$.pipe(
         map((effects) =>
@@ -58,97 +72,25 @@ export class CombatCalculationService {
         )
     );
 
-    public readonly combatResults$: Observable<CombatResults> = combineLatest([
+    public readonly combatResults$: Observable<CombatResultStatistics> = combineLatest([
         this.ruleset$,
-        this.defendEffects$,
-        this.fortifyDefendEffects$,
         this.attackerInfo.pipe(filter((v): v is AttackerInfo => v !== null)),
         this.defenderInfo.pipe(filter((v): v is DefenderInfo => v !== null))
     ]).pipe(
-        map(([ruleset, defendEffects, fortifyDefendEffects, attackerInfo, defenderInfo]) => {
-            const attackerUnit = ruleset.unitTypes.find((unit) => unit.id === attackerInfo.unitId);
-            const defenderUnit = ruleset.unitTypes.find((unit) => unit.id === defenderInfo.unitId);
-            const terrain = ruleset.terrainTypes.find((terrain) => terrain.id === defenderInfo.terrainId);
-
-            if (attackerUnit === undefined || defenderUnit === undefined || terrain === undefined) {
-                throw new Error('This should not happen');
-            }
-
-            const defenderUnitClass = ruleset.unitClasses.find((cl) => cl.name === defenderUnit.class);
-
-            if (defenderUnitClass === undefined) {
-                throw new Error('This should also not happen');
-            }
-
-            const attackPower = this.getAttackPower(ruleset, attackerUnit, attackerInfo);
-            let defensePower = this.getDefensePower(terrain, defenderUnit, defenderUnitClass, defenderInfo);
-            const breakdownDefensePower = defensePower;
-
-            const defenseBonusEffect = 100 + this.resolveDefenseEffects(defendEffects, attackerUnit, defenderInfo);
-            const fortifyDefenseBonusEffect =
-                100 +
-                this.resolveFortifyDefendEffects(fortifyDefendEffects, defenderUnit, defenderUnitClass, defenderInfo);
-            defensePower = Math.floor((defensePower * defenseBonusEffect) / 100);
-            defensePower = Math.floor((defensePower * fortifyDefenseBonusEffect) / 100);
-
-            let attackerFirepower = attackerUnit.firepower;
-            let defenderFirepower = defenderUnit.firepower;
-
-            if (attackerUnit.flags.includes('CityBuster') && defenderInfo.isInCity) {
-                attackerFirepower *= 2;
-            }
-
-            if (attackerUnit.flags.includes('BadWallAttacker') && defenseBonusEffect > 100) {
-                attackerFirepower = 1;
-            }
-
-            if (defenderUnit.flags.includes('BadCityDefender') && defenderInfo.isInCity) {
-                attackerFirepower *= 2;
-                defenderFirepower = 1;
-            }
-
-            let winChance: number | undefined;
-            if (attackerFirepower === 0) {
-                winChance = 0;
-            } else if (defenderFirepower === 0) {
-                winChance = 1;
-            }
-
-            const attackerNoDeathRoundsCount = Math.floor(
-                (attackerInfo.hp + defenderFirepower - 1) / defenderFirepower
-            );
-            const defenderNoDeathRoundsCount = Math.floor(
-                (defenderInfo.hp + attackerFirepower - 1) / attackerFirepower
-            );
-
-            const attackerRoundLoseProb =
-                attackPower + defensePower === 0 ? 0.5 : defensePower / (attackPower + defensePower);
-            const defenderRoundLoseProb = 1 - attackerRoundLoseProb;
-
-            let binomSave = Math.pow(defenderRoundLoseProb, defenderNoDeathRoundsCount - 1);
-            let accumProb = binomSave;
-
-            for (let round = 1; round < attackerNoDeathRoundsCount; round++) {
-                const n = round + defenderNoDeathRoundsCount - 1;
-                binomSave *= n;
-                binomSave /= round;
-                binomSave *= attackerRoundLoseProb;
-                accumProb += binomSave;
-            }
-            accumProb *= defenderRoundLoseProb;
-
-            const result: CombatResults = {
-                winChance: winChance !== undefined ? winChance : accumProb,
-                breakdown: {
-                    attackPower,
-                    defensePower: breakdownDefensePower,
-                    defenseBonusEffect: defenseBonusEffect - 100,
-                    fortifyBonusEffect: fortifyDefenseBonusEffect - 100
-                }
+        map(([ruleset, attackerInfo, defenderInfo]) => {
+            const world: WorldState = {
+                attacker: attackerInfo,
+                defender: defenderInfo
             };
+
+            console.time('combatSim');
+            const result = this.simulateCombat(ruleset, world, 5000);
+            console.timeEnd('combatSim');
             return result;
         })
     );
+
+    constructor(private effectsResolver: EffectResolverService) {}
 
     public setRuleset(ruleset: Ruleset): void {
         console.info('Ruleset update', ruleset);
@@ -165,135 +107,228 @@ export class CombatCalculationService {
         this.defenderInfo.next(info);
     }
 
-    private getAttackPower(ruleset: Ruleset, unit: UnitType, attackerInfo: AttackerInfo): number {
-        let baseAttackPower = Math.floor((unit.attack * POWER_FACTOR * attackerInfo.veteranLevel) / 100);
-        if (attackerInfo.moves < ruleset.moveFrags) {
-            baseAttackPower = Math.floor((baseAttackPower * attackerInfo.moves) / ruleset.moveFrags);
+    public simulateCombat(ruleset: Ruleset, world: WorldState, combatRounds: number): CombatResultStatistics {
+        const rounds: CombatRoundResult[] = [];
+        for (let i = 0; i < combatRounds; i++) {
+            rounds.push(this.simulateCombatRound(ruleset, world));
         }
-        return baseAttackPower;
-    }
 
-    private getDefensePower(tile: Terrain, unit: UnitType, unitClass: UnitClass, defenderInfo: DefenderInfo): number {
-        let baseDefensePower = Math.floor((unit.defense * POWER_FACTOR * defenderInfo.veteranLevel) / 100);
-        if (unitClass.flags.includes('TerrainDefense')) {
-            const tileDefense = 100 + tile.defenseBonus;
-            baseDefensePower = Math.floor((baseDefensePower * tileDefense) / 100);
-        }
-        return baseDefensePower;
-    }
+        console.log(rounds);
 
-    private resolveDefenseEffects(effects: Effect[], attacker: UnitType, defenderInfo: DefenderInfo): number {
-        let tally = 0;
-        for (const effect of effects) {
-            let applies = true;
-            reqLoop: for (const req of effect.requirements) {
-                let roundPassed;
-                switch (req.type) {
-                    case 'Building':
-                        if (req.range === RequirementRange.CITY) {
-                            roundPassed =
-                                defenderInfo.isInCity && defenderInfo.buildings.includes(req.name)
-                                    ? req.present
-                                    : !req.present;
-                        } else if (req.range === RequirementRange.PLAYER) {
-                            roundPassed = defenderInfo.wonders.includes(req.name) ? req.present : !req.present;
-                        } else {
-                            // can't handle
-                            applies = false;
-                            break reqLoop;
-                        }
-                        break;
-                    case 'CityTile':
-                        roundPassed =
-                            req.range === RequirementRange.LOCAL && defenderInfo.isInCity ? req.present : !req.present;
-                        break;
-                    case 'MinSize':
-                        roundPassed =
-                            req.range === RequirementRange.CITY &&
-                            defenderInfo.isInCity &&
-                            defenderInfo.citySize >= Number.parseInt(req.name)
-                                ? req.present
-                                : !req.present;
-                        break;
-                    case 'Extra':
-                        roundPassed =
-                            req.range === RequirementRange.LOCAL && defenderInfo.extras.includes(req.name)
-                                ? req.present
-                                : !req.present;
-                        break;
-                    case 'UnitClass':
-                        roundPassed =
-                            req.range === RequirementRange.LOCAL && req.name === attacker.class
-                                ? req.present
-                                : !req.present;
-                        break;
-                    default:
-                        // unknown restriction, bail out
-                        applies = false;
-                        console.warn(`Unknown effect requirement type found: "${req.type}"`, req);
-                        break reqLoop;
-                }
-                if (!roundPassed) {
-                    applies = false;
-                    break;
-                }
+        const attackerWinRounds = rounds.filter((round) => round.defenderHp <= 0);
+        const defenderWinRounds = rounds.filter((round) => round.attackerHp <= 0);
+
+        const attackerAvgLostHp =
+            rounds
+                .map((round) => world.attacker.hp - round.attackerHp)
+                .reduce((total, roundLostHp) => total + roundLostHp, 0) / rounds.length;
+        const defenderAvgLostHp =
+            rounds
+                .map((round) => world.defender.hp - round.defenderHp)
+                .reduce((total, roundLostHp) => total + roundLostHp, 0) / rounds.length;
+
+        const attackerAvgLostHpSquares =
+            rounds
+                .map((round) => world.attacker.hp - round.attackerHp)
+                .map((hp) => hp ** 2)
+                .reduce((total, roundLostHp) => total + roundLostHp, 0) / rounds.length;
+        const defenderAvgLostHpSquares =
+            rounds
+                .map((round) => world.defender.hp - round.defenderHp)
+                .map((hp) => hp ** 2)
+                .reduce((total, roundLostHp) => total + roundLostHp, 0) / rounds.length;
+        const attackerLostHpStdError = Math.sqrt(attackerAvgLostHpSquares - attackerAvgLostHp ** 2);
+        const defenderLostHpStdError = Math.sqrt(defenderAvgLostHpSquares - defenderAvgLostHp ** 2);
+
+        const result: CombatResultStatistics = {
+            attacker: {
+                winChance: attackerWinRounds.length / combatRounds,
+                averageLostHp: attackerAvgLostHp,
+                lostHpStdError: attackerLostHpStdError
+            },
+            defender: {
+                winChance: defenderWinRounds.length / combatRounds,
+                averageLostHp: defenderAvgLostHp,
+                lostHpStdError: defenderLostHpStdError
             }
-            if (applies) {
-                tally += effect.value;
+        };
+        console.log(result);
+        return result;
+    }
+
+    private simulateCombatRound(ruleset: Ruleset, world: WorldState): CombatRoundResult {
+        const attUnitType = getUnitTypeById(ruleset, world.attacker.unitId);
+        const defUnitType = getUnitTypeById(ruleset, world.defender.unitId);
+
+        const attackPower = this.getTotalAttackPower(attUnitType, ruleset, world);
+        const defendPower = this.getTotalDefensePower(attUnitType, defUnitType, ruleset, world);
+
+        let attackerHp = world.attacker.hp;
+        let defenderHp = world.defender.hp;
+
+        const [attackerFp, defenderFp] = this.getModifiedFirepower(attUnitType, defUnitType, ruleset, world);
+
+        // TODO: combat rounds - unittools.cpp:291
+        const maxRounds = 0;
+
+        if (maxRounds <= 0) {
+            if (attackPower === 0 || attackerFp === 0) {
+                attackerHp = 0;
+            } else if (defendPower === 0 || defenderFp === 0) {
+                defenderHp = 0;
             }
         }
-        return tally;
+
+        for (let round = 0; attackerHp > 0 && defenderHp > 0 && (maxRounds <= 0 || round < maxRounds); round++) {
+            if (randomInt(0, attackPower + defendPower) >= defendPower) {
+                defenderHp -= attackerFp;
+            } else {
+                attackerHp -= defenderFp;
+            }
+        }
+
+        return {
+            attackerHp,
+            defenderHp,
+            attackerVeteranUpgrade: this.maybeMakeVeteran(attUnitType, attackerHp, world.attacker.veteranLevel),
+            defenderVeteranUpgrade: this.maybeMakeVeteran(defUnitType, defenderHp, world.defender.veteranLevel)
+        };
     }
 
-    private resolveFortifyDefendEffects(
-        effects: Effect[],
+    private maybeMakeVeteran(unit: UnitType, hp: number, currentVeteranLevel: VeteranLevel): boolean {
+        if (hp <= 0) {
+            return false;
+        }
+
+        // todo: don't upgrade above max level - unittools.cpp:235
+        if (unit.flags.includes('NoVeteran')) {
+            return false;
+        }
+
+        // todo: take Veteran_Combat effect into account - unittools.cpp:239
+        const raiseChance = currentVeteranLevel.baseRaiseChance;
+
+        return randomInt(0, 100) < raiseChance;
+    }
+
+    private getModifiedFirepower(
+        attUnitType: UnitType,
+        defUnitType: UnitType,
+        ruleset: Ruleset,
+        world: WorldState
+    ): [number, number] {
+        let attackerFirepower = attUnitType.firepower;
+        let defenderFirepower = defUnitType.firepower;
+
+        if (attUnitType.flags.includes('CityBuster') && world.defender.isInCity) {
+            attackerFirepower *= 2;
+        }
+
+        const defenseBonusEffect = this.effectsResolver.resolveDefenseEffects(attUnitType, ruleset, world);
+        if (attUnitType.flags.includes('BadWallAttacker') && defenseBonusEffect > 0) {
+            attackerFirepower = 1;
+        }
+
+        if (defUnitType.flags.includes('BadCityDefender') && world.defender.isInCity) {
+            attackerFirepower *= 2;
+            defenderFirepower = 1;
+        }
+
+        const firepowerOneBonus = this.calculateCombatBonus(defUnitType.bonuses, 'Firepower1', attUnitType.flags);
+        if (firepowerOneBonus > 0) {
+            defenderFirepower = 1;
+        }
+
+        // todo: land bombardment - combat.cpp:396
+
+        return [attackerFirepower, defenderFirepower];
+    }
+
+    private getTotalAttackPower(attUnitType: UnitType, ruleset: Ruleset, world: WorldState): number {
+        let attackPower = Math.floor(
+            (attUnitType.attack * POWER_FACTOR * world.attacker.veteranLevel.powerFactor) / 100
+        );
+        if (world.attacker.moves < ruleset.moveFrags) {
+            attackPower = Math.floor((attackPower * world.attacker.moves) / ruleset.moveFrags);
+        }
+
+        // todo: attack bonus effect - combat.cpp:532
+
+        return attackPower;
+    }
+
+    private getTotalDefensePower(
+        attUnitType: UnitType,
+        defUnitType: UnitType,
+        ruleset: Ruleset,
+        world: WorldState
+    ): number {
+        // combined with do_defense_multiplication, it's easier that way
+
+        const defTile = getTerrainById(ruleset, world.defender.terrainId);
+        const defUnitClass = getUnitClassByName(ruleset, defUnitType.class);
+
+        let defensePower = this.getDefensePower(defUnitType, defUnitClass, defTile, world.defender.veteranLevel);
+
+        const [defMultiplierBonus, defDividerBonus] = this.getDefenseBonuses(attUnitType, defUnitType);
+        defensePower = Math.floor((defensePower * defMultiplierBonus) / 100);
+
+        const defenseBonusEffect = 100 + this.effectsResolver.resolveDefenseEffects(attUnitType, ruleset, world);
+        defensePower = Math.max(0, Math.floor((defensePower * defenseBonusEffect) / 100));
+
+        defensePower = Math.floor((defensePower * 100) / defDividerBonus);
+
+        // todo: tile defense bonus here - combat.cpp:583
+
+        const fortifyDefenseBonusEffect =
+            100 + this.effectsResolver.resolveFortifyDefendEffects(defUnitType, ruleset, world);
+
+        defensePower = Math.floor((defensePower * fortifyDefenseBonusEffect) / 100);
+
+        return defensePower;
+    }
+
+    private getDefensePower(
         defender: UnitType,
         defenderClass: UnitClass,
-        defenderInfo: DefenderInfo
+        defenderTile: Terrain,
+        veteranLevel: VeteranLevel
     ): number {
-        let tally = 0;
-        for (const effect of effects) {
-            let applies = true;
-            reqLoop: for (const req of effect.requirements) {
-                let roundPassed;
-                switch (req.type) {
-                    case 'CityTile':
-                        roundPassed =
-                            req.range === RequirementRange.LOCAL && defenderInfo.isInCity ? req.present : !req.present;
-                        break;
-                    case 'Activity':
-                        roundPassed =
-                            req.range === RequirementRange.LOCAL && req.name === 'Fortified' && defenderInfo.isFortified
-                                ? req.present
-                                : !req.present;
-                        break;
-                    case 'UnitClassFlag':
-                        roundPassed =
-                            req.range === RequirementRange.LOCAL && defenderClass.flags.includes(req.name)
-                                ? req.present
-                                : !req.present;
-                        break;
-                    case 'UnitFlag':
-                        roundPassed =
-                            req.range === RequirementRange.LOCAL && defender.flags.includes(req.name)
-                                ? req.present
-                                : !req.present;
-                        break;
-                    default:
-                        // unknown restriction, bail out
-                        applies = false;
-                        console.warn(`Unknown effect requirement type found: "${req.type}"`, req);
-                        break reqLoop;
-                }
-                if (!roundPassed) {
-                    applies = false;
-                    break;
-                }
-            }
-            if (applies) {
-                tally += effect.value;
+        let defensePower = Math.floor((defender.defense * POWER_FACTOR * veteranLevel.powerFactor) / 100);
+        if (defenderClass.flags.includes('TerrainDefense')) {
+            const tileBonus = 100 + defenderTile.defenseBonus;
+            defensePower = Math.floor((defensePower * tileBonus) / 100);
+        }
+        return defensePower;
+    }
+
+    private getDefenseBonuses(attacker: UnitType, defender: UnitType): [number, number] {
+        const defenseMultiplierPct = this.calculateCombatBonus(
+            defender.bonuses,
+            'DefenseMultiplierPct',
+            attacker.flags
+        );
+        const defenseMultiplier = this.calculateCombatBonus(defender.bonuses, 'DefenseMultiplier', attacker.flags);
+        const totalDefenseMultiplierBonus = 100 + defenseMultiplierPct + 100 * defenseMultiplier;
+
+        const defenseDividerPct = this.calculateCombatBonus(attacker.bonuses, 'DefenseDividerPct', defender.flags);
+        const defenseDivider = this.calculateCombatBonus(attacker.bonuses, 'DefenseDivider', defender.flags);
+        const totalDefenseDividerBonus = 100 + defenseDividerPct + 100 * defenseDivider;
+
+        return [totalDefenseMultiplierBonus, totalDefenseDividerBonus];
+    }
+
+    private calculateCombatBonus(
+        defenderBonuses: UnitTypeBonus[],
+        targetBonusType: string,
+        attackerFlags: string[]
+    ): number {
+        let total = 0;
+        for (const bonus of defenderBonuses) {
+            if (bonus.type === targetBonusType && attackerFlags.includes(bonus.flag)) {
+                total += bonus.value;
             }
         }
-        return tally;
+        return total;
     }
 }
