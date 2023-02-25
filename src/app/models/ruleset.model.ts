@@ -15,10 +15,28 @@ export interface Effect {
 }
 
 export enum RequirementRange {
-    LOCAL = 'Local',
-    CITY = 'City',
-    PLAYER = 'Player'
+    NONE = 'none',
+    LOCAL = 'local',
+    CARDINALLY_ADJACENT = 'cadjacent',
+    ADJACENT = 'adjacent',
+    CITY = 'city',
+    CONTINENT = 'continent',
+    PLAYER = 'player',
+    ALLIED = 'allied',
+    WORLD = 'world'
 }
+
+export const REQUIREMENT_RANGES = [
+    RequirementRange.NONE,
+    RequirementRange.LOCAL,
+    RequirementRange.CARDINALLY_ADJACENT,
+    RequirementRange.ADJACENT,
+    RequirementRange.CITY,
+    RequirementRange.CONTINENT,
+    RequirementRange.PLAYER,
+    RequirementRange.ALLIED,
+    RequirementRange.WORLD
+] as const;
 
 export interface Requirement {
     type: string;
@@ -37,8 +55,14 @@ export interface UnitType {
     hitpoints: number;
     moves: number;
     flags: string[];
-    // TODO: unit-v-unit bonuses (like Destroyer vs Submarine or such)
+    bonuses: UnitTypeBonus[];
     veteranLevels: VeteranLevel[];
+}
+
+export interface UnitTypeBonus {
+    flag: string;
+    type: string;
+    value: number;
 }
 
 export interface UnitClass {

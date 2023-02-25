@@ -18,6 +18,7 @@ import {
     IniTable,
     IniValueList
 } from 'src/app/services/parser/freeciv-ini-ast';
+import { rawValueAsString } from 'src/app/services/parser/freeciv-ini-ast-utils';
 
 export interface IFreecivIniToAstVisitor extends ICstVisitor<unknown, unknown> {
     iniContents(children: IniContentsCstChildren): IniFile;
@@ -120,8 +121,7 @@ export class FreecivIniToAstVisitor extends FreecivIniBaseVisitor implements IFr
             children.iniValueList?.slice(1)?.map((row) => this.visit(row) as ReturnType<typeof this.iniValueList>) ??
             [];
         return {
-            type: 'table',
-            heading,
+            heading: heading.map((value) => rawValueAsString(value)),
             rows
         };
     }

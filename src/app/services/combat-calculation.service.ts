@@ -1,16 +1,7 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, combineLatest, filter, map, Observable, tap } from 'rxjs';
+import { BehaviorSubject, combineLatest, filter, map, Observable } from 'rxjs';
 import { Effect, RequirementRange, Ruleset, Terrain, UnitClass, UnitType } from 'src/app/models/ruleset.model';
 import { AttackerInfo, CombatResults, DefenderInfo } from 'src/app/models/combat-info.model';
-import { rules } from '@typescript-eslint/eslint-plugin';
-
-const handleableRequirementTypes = [
-    'Extra' /*of range Local*/,
-    'UnitClass' /*of range Local*/,
-    'Building' /*of range Player and City*/,
-    'CityTile' /*of range Local*/,
-    'MinSize' /*of range City*/
-];
 
 // I don't know why this exists, but it does
 const POWER_FACTOR = 10;
@@ -146,8 +137,6 @@ export class CombatCalculationService {
             }
             accumProb *= defenderRoundLoseProb;
 
-            console.log(accumProb);
-
             const result: CombatResults = {
                 winChance: winChance !== undefined ? winChance : accumProb,
                 breakdown: {
@@ -241,6 +230,7 @@ export class CombatCalculationService {
                     default:
                         // unknown restriction, bail out
                         applies = false;
+                        console.warn(`Unknown effect requirement type found: "${req.type}"`, req);
                         break reqLoop;
                 }
                 if (!roundPassed) {
@@ -292,6 +282,7 @@ export class CombatCalculationService {
                     default:
                         // unknown restriction, bail out
                         applies = false;
+                        console.warn(`Unknown effect requirement type found: "${req.type}"`, req);
                         break reqLoop;
                 }
                 if (!roundPassed) {
