@@ -19,8 +19,7 @@ export type IniRawValue = string | boolean | number;
 export type IniValueList = IniRawValue[];
 
 export interface IniTable {
-    type: 'table';
-    heading: IniValueList;
+    heading: string[];
     rows: IniValueList[];
 }
 
