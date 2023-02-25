@@ -3,6 +3,7 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { CombatCalculationService } from 'src/app/services/combat-calculation.service';
 import { combineLatest, filter, map, Observable } from 'rxjs';
 import { Ruleset, UnitType, VeteranLevel } from 'src/app/models/ruleset.model';
+import { getUnitTypeById } from 'src/app/utils/ruleset-utils';
 
 @Component({
     selector: 'app-attacker-form',
@@ -13,7 +14,7 @@ import { Ruleset, UnitType, VeteranLevel } from 'src/app/models/ruleset.model';
 export class AttackerFormComponent {
     public attackerForm = new FormGroup({
         unit: new FormControl<string>('', [Validators.required]),
-        veteran: new FormControl<number>(100, [Validators.required]),
+        veteran: new FormControl<VeteranLevel | null>(null, [Validators.required]),
         hp: new FormControl<number>(0),
         moves: new FormControl<number>(0)
     });
@@ -40,23 +41,19 @@ export class AttackerFormComponent {
             })
         );
 
-        const attackerUnit$ = combineLatest([this.ruleset$, this.attackerForm.controls.unit.valueChanges]).pipe(
-            map(([ruleset, attacker]) => ruleset.unitTypes.find((type) => type.id === attacker)),
-            filter((attacker): attacker is UnitType => attacker !== undefined)
-        );
+        const attackerUnit$ = combineLatest([
+            this.ruleset$,
+            this.attackerForm.controls.unit.valueChanges.pipe(filter((value): value is string => value !== null))
+        ]).pipe(map(([ruleset, attacker]) => getUnitTypeById(ruleset, attacker)));
         this.attackerVeteranLevels$ = combineLatest([this.ruleset$, attackerUnit$]).pipe(
             map(([ruleset, attacker]) => {
-                if (attacker.veteranLevels.length > 0) {
-                    return attacker.veteranLevels;
-                } else {
-                    return ruleset.defaultVeteranLevels;
-                }
+                return attacker.veteranLevels.length > 0 ? attacker.veteranLevels : ruleset.defaultVeteranLevels;
             })
         );
         this.attackerMaxHp$ = attackerUnit$.pipe(map((attacker) => attacker.hitpoints));
         combineLatest([attackerUnit$, this.attackerVeteranLevels$]).subscribe(([unit, availableVeteranLevels]) => {
             this.attackerForm.patchValue({
-                veteran: availableVeteranLevels[0].powerFactor,
+                veteran: availableVeteranLevels[0],
                 hp: unit.hitpoints,
                 moves: this.lastKnownMoveFrags
             });

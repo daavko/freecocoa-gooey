@@ -74,6 +74,7 @@ export interface UnitClass {
 export interface VeteranLevel {
     name: string;
     powerFactor: number;
+    baseRaiseChance: number;
 }
 
 export interface Terrain {

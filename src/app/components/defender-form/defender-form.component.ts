@@ -3,6 +3,7 @@ import { CombatCalculationService } from 'src/app/services/combat-calculation.se
 import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { combineLatest, filter, map, Observable, Subject, Subscription } from 'rxjs';
 import { Ruleset, UnitType, VeteranLevel } from 'src/app/models/ruleset.model';
+import { getUnitTypeById } from 'src/app/utils/ruleset-utils';
 
 @Component({
     selector: 'app-defender-form',
@@ -13,7 +14,7 @@ import { Ruleset, UnitType, VeteranLevel } from 'src/app/models/ruleset.model';
 export class DefenderFormComponent {
     public defenderForm = new FormGroup({
         unit: new FormControl<string>('', [Validators.required]),
-        veteran: new FormControl<number>(100, [Validators.required]),
+        veteran: new FormControl<VeteranLevel | null>(null, [Validators.required]),
         hp: new FormControl<number>(0),
         terrain: new FormControl<string>('', [Validators.required]),
         isInCity: new FormControl<boolean>(false),
@@ -51,10 +52,10 @@ export class DefenderFormComponent {
             })
         );
 
-        const defenderUnit$ = combineLatest([this.ruleset$, this.defenderForm.controls.unit.valueChanges]).pipe(
-            map(([ruleset, defender]) => ruleset.unitTypes.find((type) => type.id === defender)),
-            filter((defender): defender is UnitType => defender !== undefined)
-        );
+        const defenderUnit$ = combineLatest([
+            this.ruleset$,
+            this.defenderForm.controls.unit.valueChanges.pipe(filter((value): value is string => value !== null))
+        ]).pipe(map(([ruleset, defender]) => getUnitTypeById(ruleset, defender)));
         this.defenderVeteranLevels$ = combineLatest([this.ruleset$, defenderUnit$]).pipe(
             map(([ruleset, attacker]) => {
                 if (attacker.veteranLevels.length > 0) {
@@ -66,7 +67,7 @@ export class DefenderFormComponent {
         );
         this.defenderMaxHp$ = defenderUnit$.pipe(map((defender) => defender.hitpoints));
         combineLatest([defenderUnit$, this.defenderVeteranLevels$]).subscribe(([unit, availableVeteranLevels]) => {
-            this.defenderForm.controls.veteran.setValue(availableVeteranLevels[0].powerFactor);
+            this.defenderForm.controls.veteran.setValue(availableVeteranLevels[0]);
             this.defenderForm.controls.hp.setValue(unit.hitpoints);
         });
 
