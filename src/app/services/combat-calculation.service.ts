@@ -84,7 +84,7 @@ export class CombatCalculationService {
             };
 
             console.time('combatSim');
-            const result = this.simulateCombat(ruleset, world, 5000);
+            const result = this.simulateCombat(ruleset, world, 50000);
             console.timeEnd('combatSim');
             return result;
         })
@@ -108,9 +108,26 @@ export class CombatCalculationService {
     }
 
     public simulateCombat(ruleset: Ruleset, world: WorldState, combatRounds: number): CombatResultStatistics {
+        const attUnitType = getUnitTypeById(ruleset, world.attacker.unitId);
+        const defUnitType = getUnitTypeById(ruleset, world.defender.unitId);
+
+        const attackPower = this.getTotalAttackPower(attUnitType, ruleset, world);
+        const defendPower = this.getTotalDefensePower(attUnitType, defUnitType, ruleset, world);
+
+        const [attackerFp, defenderFp] = this.getModifiedFirepower(attUnitType, defUnitType, ruleset, world);
+
         const rounds: CombatRoundResult[] = [];
         for (let i = 0; i < combatRounds; i++) {
-            rounds.push(this.simulateCombatRound(ruleset, world));
+            rounds.push(
+                this.simulateCombatRound(
+                    attackPower,
+                    defendPower,
+                    world.attacker.hp,
+                    world.defender.hp,
+                    attackerFp,
+                    defenderFp
+                )
+            );
         }
 
         console.log(rounds);
@@ -156,30 +173,20 @@ export class CombatCalculationService {
         return result;
     }
 
-    private simulateCombatRound(ruleset: Ruleset, world: WorldState): CombatRoundResult {
-        const attUnitType = getUnitTypeById(ruleset, world.attacker.unitId);
-        const defUnitType = getUnitTypeById(ruleset, world.defender.unitId);
+    private simulateCombatRound(
+        attackPower: number,
+        defendPower: number,
+        attackerStartingHp: number,
+        defenderStartingHp: number,
+        attackerFp: number,
+        defenderFp: number
+    ): CombatRoundResult {
+        let attackerHp = attackerStartingHp;
+        let defenderHp = defenderStartingHp;
 
-        const attackPower = this.getTotalAttackPower(attUnitType, ruleset, world);
-        const defendPower = this.getTotalDefensePower(attUnitType, defUnitType, ruleset, world);
+        // TODO: variable combat rounds - unittools.cpp:291
 
-        let attackerHp = world.attacker.hp;
-        let defenderHp = world.defender.hp;
-
-        const [attackerFp, defenderFp] = this.getModifiedFirepower(attUnitType, defUnitType, ruleset, world);
-
-        // TODO: combat rounds - unittools.cpp:291
-        const maxRounds = 0;
-
-        if (maxRounds <= 0) {
-            if (attackPower === 0 || attackerFp === 0) {
-                attackerHp = 0;
-            } else if (defendPower === 0 || defenderFp === 0) {
-                defenderHp = 0;
-            }
-        }
-
-        for (let round = 0; attackerHp > 0 && defenderHp > 0 && (maxRounds <= 0 || round < maxRounds); round++) {
+        for (let round = 0; attackerHp > 0 && defenderHp > 0; round++) {
             if (randomInt(0, attackPower + defendPower) >= defendPower) {
                 defenderHp -= attackerFp;
             } else {
@@ -189,26 +196,8 @@ export class CombatCalculationService {
 
         return {
             attackerHp,
-            defenderHp,
-            attackerVeteranUpgrade: this.maybeMakeVeteran(attUnitType, attackerHp, world.attacker.veteranLevel),
-            defenderVeteranUpgrade: this.maybeMakeVeteran(defUnitType, defenderHp, world.defender.veteranLevel)
+            defenderHp
         };
-    }
-
-    private maybeMakeVeteran(unit: UnitType, hp: number, currentVeteranLevel: VeteranLevel): boolean {
-        if (hp <= 0) {
-            return false;
-        }
-
-        // todo: don't upgrade above max level - unittools.cpp:235
-        if (unit.flags.includes('NoVeteran')) {
-            return false;
-        }
-
-        // todo: take Veteran_Combat effect into account - unittools.cpp:239
-        const raiseChance = currentVeteranLevel.baseRaiseChance;
-
-        return randomInt(0, 100) < raiseChance;
     }
 
     private getModifiedFirepower(

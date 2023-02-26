@@ -25,23 +25,9 @@ export interface DefenderInfo {
     wonders: string[];
 }
 
-export interface CombatResults {
-    winChance: number;
-    breakdown: CombatResultsBreakdown;
-}
-
-export interface CombatResultsBreakdown {
-    attackPower: number;
-    defensePower: number;
-    defenseBonusEffect: number;
-    fortifyBonusEffect: number;
-}
-
 export interface CombatRoundResult {
     attackerHp: number;
     defenderHp: number;
-    attackerVeteranUpgrade: boolean;
-    defenderVeteranUpgrade: boolean;
 }
 
 export interface CombatResultStatistics {
