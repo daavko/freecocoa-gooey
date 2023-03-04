@@ -17,6 +17,7 @@
                 "plugin:@angular-eslint/recommended",
                 "plugin:@angular-eslint/template/process-inline-templates",
                 "plugin:rxjs/recommended",
+                "plugin:@ngrx/strict-requiring-type-checking",
                 "prettier"
             ],
             "rules": {
