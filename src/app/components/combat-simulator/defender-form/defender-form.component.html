@@ -2,16 +2,14 @@
     <div class="flex">
         <mat-form-field>
             <mat-label>Defending unit</mat-label>
-            <mat-select formControlName="unit">
-                <mat-option>Select a unit</mat-option>
-                <mat-option *ngFor="let option of units$ | async" [value]="option.id">{{ option.name }}</mat-option>
+            <mat-select formControlName="unitType" (selectionChange)="unitTypeSelectionChanged()">
+                <mat-option *ngFor="let unitType of unitTypes" [value]="unitType">{{ unitType.name }}</mat-option>
             </mat-select>
         </mat-form-field>
         <mat-form-field>
             <mat-label>Veteran level</mat-label>
-            <mat-select formControlName="veteran">
-                <mat-option>Select a level</mat-option>
-                <mat-option *ngFor="let level of defenderVeteranLevels$ | async" [value]="level">{{
+            <mat-select formControlName="veteranLevel" [disabled]="defenderForm.controls.unitType.invalid">
+                <mat-option *ngFor="let level of availableVeteranLevels$ | async" [value]="level">{{
                     level.name
                 }}</mat-option>
             </mat-select>
@@ -22,8 +20,9 @@
         <mat-slider
             class="flex-grow"
             formControlName="hp"
+            [disabled]="defenderForm.controls.unitType.invalid"
             min="0"
-            [max]="(defenderMaxHp$ | async) ?? 0"
+            [max]="(maxHp$ | async) ?? 0"
             step="1"
             value="5"
             thumbLabel
@@ -32,10 +31,7 @@
     <mat-form-field>
         <mat-label>Terrain</mat-label>
         <mat-select formControlName="terrain">
-            <mat-option>Select a terrain</mat-option>
-            <mat-option *ngFor="let terrain of (ruleset$ | async)?.terrainTypes" [value]="terrain.id">{{
-                terrain.name
-            }}</mat-option>
+            <mat-option *ngFor="let terrain of terrains$ | async" [value]="terrain">{{ terrain.name }}</mat-option>
         </mat-select>
     </mat-form-field>
     <div class="flex flex-align-center">
@@ -47,21 +43,22 @@
     </div>
     <mat-checkbox formControlName="isFortified">Fortified</mat-checkbox>
     <div class="horizontal-spacer"></div>
-    <div class="grid-twocol" formArrayName="extras">
-        <mat-checkbox *ngFor="let extra of extras$ | async; let i = index" [formControlName]="i"
-            >Tile has {{ extra }}</mat-checkbox
-        >
-    </div>
-    <div class="horizontal-spacer"></div>
-    <div class="grid-twocol" formArrayName="buildings">
-        <mat-checkbox *ngFor="let building of buildings$ | async; let i = index" [formControlName]="i"
-            >City has {{ building }}</mat-checkbox
-        >
-    </div>
-    <div class="horizontal-spacer"></div>
-    <div class="grid-twocol" formArrayName="wonders">
-        <mat-checkbox *ngFor="let wonder of wonders$ | async; let i = index" [formControlName]="i"
-            >Player has {{ wonder }}</mat-checkbox
-        >
-    </div>
+    <mat-form-field>
+        <mat-label>Tile extras</mat-label>
+        <mat-select multiple formControlName="tileExtras">
+            <mat-option *ngFor="let extra of extras$ | async" [value]="extra">{{ extra }}</mat-option>
+        </mat-select>
+    </mat-form-field>
+    <mat-form-field>
+        <mat-label>City buildings</mat-label>
+        <mat-select multiple formControlName="cityBuildings">
+            <mat-option *ngFor="let building of buildings$ | async" [value]="building">{{ building }}</mat-option>
+        </mat-select>
+    </mat-form-field>
+    <mat-form-field>
+        <mat-label>Player wonders</mat-label>
+        <mat-select multiple formControlName="playerWonders">
+            <mat-option *ngFor="let wonder of wonders$ | async" [value]="wonder">{{ wonder }}</mat-option>
+        </mat-select>
+    </mat-form-field>
 </form>

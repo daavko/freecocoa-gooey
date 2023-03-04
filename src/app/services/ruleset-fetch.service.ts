@@ -265,6 +265,13 @@ export class RulesetFetchService {
         );
         const vetLevels = this.mergeVeterancyNamesAndPowerFactors(vetNames, vetPowerFacts, vetBaseRaiseChances);
 
+        // this makes things way easier in other parts of code
+        for (const unitType of unitTypes) {
+            if (unitType.veteranLevels.length === 0) {
+                unitType.veteranLevels = vetLevels;
+            }
+        }
+
         return [unitClasses, unitTypes, vetLevels];
     }
 

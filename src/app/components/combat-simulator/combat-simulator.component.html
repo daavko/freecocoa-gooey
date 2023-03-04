@@ -3,9 +3,9 @@
 <div class="unit-info-container">
     <div>
         <h2>Attacking unit info</h2>
-        <app-attacker-form></app-attacker-form>
+        <app-attacker-form [unitTypes]="(sortedUnitTypes$ | async) ?? []"></app-attacker-form>
         <h2>Defending unit info</h2>
-        <app-defender-form></app-defender-form>
+        <app-defender-form [unitTypes]="(sortedUnitTypes$ | async) ?? []"></app-defender-form>
     </div>
 
     <div>

@@ -17,7 +17,7 @@ import {
     WorldState
 } from 'src/app/models/combat-info.model';
 import { EffectResolverService } from 'src/app/services/effect-resolver.service';
-import { getTerrainById, getUnitClassByName, getUnitTypeById } from 'src/app/utils/ruleset-utils';
+import { getUnitClassByName } from 'src/app/utils/ruleset-utils';
 import { randomInt } from 'src/app/utils/number-utils';
 
 // I don't know why this exists, but it does
@@ -113,8 +113,8 @@ export class CombatCalculationService {
     }
 
     public calculateResultChances(ruleset: Ruleset, world: WorldState): [CombatResult, CombatResult] {
-        const attUnitType = getUnitTypeById(ruleset, world.attacker.unitId);
-        const defUnitType = getUnitTypeById(ruleset, world.defender.unitId);
+        const attUnitType = world.attacker.unitType;
+        const defUnitType = world.defender.unitType;
 
         const attackPower = this.getTotalAttackPower(attUnitType, ruleset, world);
         const defendPower = this.getTotalDefensePower(attUnitType, defUnitType, ruleset, world);
@@ -279,8 +279,8 @@ export class CombatCalculationService {
 
     public simulateCombat(ruleset: Ruleset, world: WorldState, combatRounds: number): CombatResultStatistics {
         const startTime = performance.now();
-        const attUnitType = getUnitTypeById(ruleset, world.attacker.unitId);
-        const defUnitType = getUnitTypeById(ruleset, world.defender.unitId);
+        const attUnitType = world.attacker.unitType;
+        const defUnitType = world.defender.unitType;
 
         const attackPower = this.getTotalAttackPower(attUnitType, ruleset, world);
         const defendPower = this.getTotalDefensePower(attUnitType, defUnitType, ruleset, world);
@@ -429,7 +429,7 @@ export class CombatCalculationService {
     ): number {
         // combined with do_defense_multiplication, it's easier that way
 
-        const defTile = getTerrainById(ruleset, world.defender.terrainId);
+        const defTile = world.defender.terrain;
         const defUnitClass = getUnitClassByName(ruleset, defUnitType.class);
 
         let defensePower = this.getDefensePower(defUnitType, defUnitClass, defTile, world.defender.veteranLevel);
