@@ -1,5 +1,5 @@
 /**
- * Random integer in inclusive range min-max
+ * Random integer in exclusive range min-max
  *
  * @param min
  * @param max
