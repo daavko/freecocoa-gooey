@@ -4,6 +4,7 @@ import { AppScreen } from 'src/app/state/app/app-state-model';
 export const appActions = createActionGroup({
     source: 'App',
     events: {
-        'Change Screen': props<{ targetScreen: AppScreen }>()
+        'Change Screen': props<{ targetScreen: AppScreen }>(),
+        'Change Toolbar Title': props<{ title: string }>()
     }
 });

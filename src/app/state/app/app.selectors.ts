@@ -1,7 +1,8 @@
 import { appFeature } from 'src/app/state/app/app.reducer';
 
-const { selectScreen } = appFeature;
+const { selectScreen, selectTitle } = appFeature;
 
 export const appQuery = {
-    selectScreen
+    selectScreen,
+    selectTitle
 };
