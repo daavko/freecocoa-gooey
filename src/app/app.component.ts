@@ -19,7 +19,9 @@ export class AppComponent {
         this.screen$ = appFacade.screen$;
         this.toolbarTitle$ = appFacade.toolbarTitle$;
         this.showBackToRulesetPickerButton$ = appFacade.screen$.pipe(map((screen) => screen === 'toolPick'));
-        this.showBackToToolPickerButton = appFacade.screen$.pipe(map((screen) => screen === 'combatForm'));
+        this.showBackToToolPickerButton = appFacade.screen$.pipe(
+            map((screen) => screen !== 'rulesetPick' && screen !== 'toolPick')
+        );
     }
 
     public backToRulesetSelection(): void {

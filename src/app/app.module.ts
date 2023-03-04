@@ -25,10 +25,12 @@ import { StoreDevtoolsModule } from '@ngrx/store-devtools';
 // components
 import { AppComponent } from './app.component';
 import { RulesetPickerComponent } from './components/ruleset-picker/ruleset-picker.component';
-import { ToolPickerComponent } from 'src/app/components/util-picker/tool-picker.component';
+import { ToolPickerComponent } from 'src/app/components/tool-picker/tool-picker.component';
 import { AttackerFormComponent } from './components/combat-simulator/attacker-form/attacker-form.component';
 import { DefenderFormComponent } from './components/combat-simulator/defender-form/defender-form.component';
 import { CombatSimulatorComponent } from './components/combat-simulator/combat-simulator.component';
+import { BribeCostCalculatorComponent } from './components/bribe-cost-calculator/bribe-cost-calculator.component';
+import { InciteCostCalculatorComponent } from './components/incite-cost-calculator/incite-cost-calculator.component';
 
 // misc
 import { environment } from 'src/environments/environment';
@@ -44,7 +46,9 @@ import { appStateAppImports } from 'src/app/state/app/public-api';
         AttackerFormComponent,
         DefenderFormComponent,
         CombatSimulatorComponent,
-        ToolPickerComponent
+        ToolPickerComponent,
+        BribeCostCalculatorComponent,
+        InciteCostCalculatorComponent
     ],
     imports: [
         BrowserModule,
