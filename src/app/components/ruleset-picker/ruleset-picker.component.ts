@@ -1,43 +1,12 @@
 import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
-import { BehaviorSubject, combineLatest, map, Observable } from 'rxjs';
-import { AbstractControl, FormControl, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
-import { RulesetLoadState, RulesetPresetName, rulesetPresets } from 'src/app/models/ruleset-picker.model';
+import { combineLatest, map, Observable } from 'rxjs';
+import { AbstractControl, FormControl, FormGroup, Validators } from '@angular/forms';
+import { RulesetPresetName, rulesetPresets } from 'src/app/models/ruleset-picker.model';
 import { RulesetFetchService } from 'src/app/services/ruleset-fetch.service';
 import { CombatCalculationService } from 'src/app/services/combat-calculation.service';
-
-const isValidUrl: ValidatorFn = (control): ValidationErrors | null => {
-    const value: unknown = control.value;
-
-    if (typeof value !== 'string') {
-        return { invalidUrl: 'Value must be a string' };
-    }
-    try {
-        new URL(value);
-    } catch (e) {
-        return { invalidUrl: 'Value must be a valid URL' };
-    }
-
-    return null;
-};
-
-const noGithubComUrl: ValidatorFn = (control): ValidationErrors | null => {
-    const value: unknown = control.value;
-
-    if (typeof value !== 'string') {
-        return { noGithubComUrl: 'Value must be a string' };
-    }
-
-    try {
-        const url = new URL(value);
-        if (url.hostname === 'github.com') {
-            return { noGithubComUrl: 'Use raw.githubusercontent.com instead of github.com (due to CORS)' };
-        }
-    } catch (e) {
-        return { noGithubComUrl: 'Value must be a valid URL' };
-    }
-
-    return null;
-};
+import { RulesetFacade } from 'src/app/state/ruleset/public-api';
+import { LoadingState } from 'src/app/utils/utility-types';
+import { isValidUrl, noGithubComUrl } from 'src/app/utils/form-utils';
 
 @Component({
     selector: 'app-ruleset-picker',
@@ -48,17 +17,7 @@ const noGithubComUrl: ValidatorFn = (control): ValidationErrors | null => {
 export class RulesetPickerComponent implements OnInit {
     public pickerForm = new FormGroup({
         preset: new FormControl<RulesetPresetName>({ value: 'none', disabled: false }),
-        effectsUrl: new FormControl<string>({ value: '', disabled: false }, [
-            Validators.required,
-            isValidUrl,
-            noGithubComUrl
-        ]),
-        terrainUrl: new FormControl<string>({ value: '', disabled: false }, [
-            Validators.required,
-            isValidUrl,
-            noGithubComUrl
-        ]),
-        unitsUrl: new FormControl<string>({ value: '', disabled: false }, [
+        baseUrl: new FormControl<string>({ value: '', disabled: false }, [
             Validators.required,
             isValidUrl,
             noGithubComUrl
@@ -66,41 +25,39 @@ export class RulesetPickerComponent implements OnInit {
     });
     public readonly readonlyInputs$: Observable<boolean>;
 
-    private readonly loadState = new BehaviorSubject<RulesetLoadState>('beforeLoad');
+    public readonly loadState$: Observable<LoadingState>;
 
-    public readonly loadState$ = this.loadState.asObservable();
-
-    constructor(private rulesetFetch: RulesetFetchService, private combatCalculator: CombatCalculationService) {
+    constructor(
+        private rulesetFacade: RulesetFacade,
+        private rulesetFetch: RulesetFetchService,
+        private combatCalculator: CombatCalculationService
+    ) {
+        this.loadState$ = this.rulesetFacade.rulesetLoadingState$;
         this.readonlyInputs$ = combineLatest([this.pickerForm.controls.preset.valueChanges, this.loadState$]).pipe(
             map(([formValue, loadState]) => formValue !== 'none' || loadState === 'loading')
         );
+
+        // todo: rewrite so calculator isn't used directly
+        this.rulesetFacade.ruleset$.subscribe((ruleset) => this.combatCalculator.setRuleset(ruleset));
     }
 
     public ngOnInit(): void {
         this.pickerForm.controls.preset.valueChanges.subscribe((value) => {
             if (value !== null) {
-                const { effectsUrl, terrainUrl, unitsUrl } = rulesetPresets[value];
-                this.pickerForm.controls.effectsUrl.setValue(effectsUrl);
-                this.pickerForm.controls.terrainUrl.setValue(terrainUrl);
-                this.pickerForm.controls.unitsUrl.setValue(unitsUrl);
+                const { baseUrl } = rulesetPresets[value];
+                this.pickerForm.controls.baseUrl.setValue(baseUrl);
             }
         });
     }
 
     public loadRuleset(): void {
-        const { effectsUrl, terrainUrl, unitsUrl } = this.pickerForm.getRawValue();
-        this.loadState.next('loading');
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- safe, we validate beforehand
-        this.rulesetFetch.fetchRuleset(effectsUrl!, terrainUrl!, unitsUrl!).subscribe({
-            next: (ruleset) => {
-                this.combatCalculator.setRuleset(ruleset);
-                this.loadState.next('loaded');
-            },
-            error: (error: unknown) => {
-                console.error(error);
-                this.loadState.next('error');
-            }
-        });
+        const { baseUrl } = this.pickerForm.getRawValue();
+
+        if (baseUrl === null) {
+            throw new Error('this should never happen');
+        }
+
+        this.rulesetFacade.loadRuleset(baseUrl);
     }
 
     public isInvalid(control: AbstractControl): boolean {

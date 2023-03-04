@@ -38,10 +38,15 @@ export class RulesetFetchService {
 
     constructor(private http: HttpClient) {}
 
-    public fetchRuleset(effectsUrl: string, terrainUrl: string, unitsUrl: string): Observable<Ruleset> {
-        const effects$ = this.http.get(effectsUrl, { responseType: 'text' });
-        const terrain$ = this.http.get(terrainUrl, { responseType: 'text' });
-        const units$ = this.http.get(unitsUrl, { responseType: 'text' });
+    public fetchRuleset(baseUrl: string): Observable<Ruleset> {
+        if (baseUrl.endsWith('/')) {
+            baseUrl = baseUrl.slice(0, -1);
+        }
+
+        const effects$ = this.http.get(`${baseUrl}/effects.ruleset`, { responseType: 'text' });
+        const terrain$ = this.http.get(`${baseUrl}/terrain.ruleset`, { responseType: 'text' });
+        const units$ = this.http.get(`${baseUrl}/units.ruleset`, { responseType: 'text' });
+
         return combineLatest([units$, terrain$, effects$]).pipe(
             map(([units, terrain, effects]) => {
                 const unitsFile = this.parseFile(units);
