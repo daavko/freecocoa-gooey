@@ -11,13 +11,15 @@ import { RulesetFacade } from 'src/app/state/ruleset/public-api';
 })
 export class AppComponent {
     public readonly screen$: Observable<AppScreen>;
-    public readonly showBackToRulesetButton$: Observable<boolean>;
-    public readonly showBackToUtilityPickerButton: Observable<boolean>;
+    public readonly toolbarTitle$: Observable<string>;
+    public readonly showBackToRulesetPickerButton$: Observable<boolean>;
+    public readonly showBackToToolPickerButton: Observable<boolean>;
 
     constructor(private appFacade: AppFacade, private rulesetFacade: RulesetFacade) {
         this.screen$ = appFacade.screen$;
-        this.showBackToRulesetButton$ = appFacade.screen$.pipe(map((screen) => screen === 'utilPick'));
-        this.showBackToUtilityPickerButton = appFacade.screen$.pipe(map((screen) => screen === 'combatForm'));
+        this.toolbarTitle$ = appFacade.toolbarTitle$;
+        this.showBackToRulesetPickerButton$ = appFacade.screen$.pipe(map((screen) => screen === 'toolPick'));
+        this.showBackToToolPickerButton = appFacade.screen$.pipe(map((screen) => screen === 'combatForm'));
     }
 
     public backToRulesetSelection(): void {
@@ -25,7 +27,7 @@ export class AppComponent {
         this.rulesetFacade.reset();
     }
 
-    public backToUtilSelection(): void {
-        this.appFacade.switchScreen('utilPick');
+    public backToToolSelection(): void {
+        this.appFacade.switchScreen('toolPick');
     }
 }

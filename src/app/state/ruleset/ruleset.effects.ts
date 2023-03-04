@@ -34,7 +34,7 @@ export class RulesetEffects {
             return this.actions$.pipe(
                 ofType(rulesetActions.loadRulesetSuccess),
                 concatMap(() => {
-                    this.appFacade.switchScreen('utilPick');
+                    this.appFacade.switchScreen('toolPick');
                     return EMPTY;
                 })
             );

@@ -7,6 +7,7 @@ import { AppScreen } from 'src/app/state/app/app-state-model';
 @Injectable({ providedIn: 'root' })
 export class AppFacade {
     public readonly screen$ = this.store.select(appQuery.selectScreen);
+    public readonly toolbarTitle$ = this.store.select(appQuery.selectTitle);
 
     constructor(private store: Store) {}
 

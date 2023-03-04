@@ -1,12 +1,8 @@
 <mat-toolbar>
     <div class="toolbar">
-        <h1 [ngSwitch]="screen$ | async">
-            <ng-container *ngSwitchCase="'rulesetPick'">Choose a ruleset</ng-container>
-            <ng-container *ngSwitchCase="'utilPick'">Choose your util</ng-container>
-            <ng-container *ngSwitchCase="'combatForm'">Combat simulator</ng-container>
-        </h1>
+        <h1 [ngSwitch]="screen$ | async">{{ toolbarTitle$ | async }}</h1>
         <button
-            *ngIf="showBackToRulesetButton$ | async"
+            *ngIf="showBackToRulesetPickerButton$ | async"
             mat-stroked-button
             color="accent"
             class="toolbar__back"
@@ -14,19 +10,19 @@
             Back to ruleset selection
         </button>
         <button
-            *ngIf="showBackToUtilityPickerButton | async"
+            *ngIf="showBackToToolPickerButton | async"
             mat-stroked-button
             color="accent"
             class="toolbar__back"
-            (click)="backToUtilSelection()">
-            Back to util selection
+            (click)="backToToolSelection()">
+            Back to tool selection
         </button>
     </div>
 </mat-toolbar>
 <div class="app-container">
     <div class="content-container">
         <app-ruleset-picker *ngIf="(screen$ | async) === 'rulesetPick'"></app-ruleset-picker>
-        <app-util-picker *ngIf="(screen$ | async) === 'utilPick'"></app-util-picker>
+        <app-tool-picker *ngIf="(screen$ | async) === 'toolPick'"></app-tool-picker>
         <app-combat-simulator *ngIf="(screen$ | async) === 'combatForm'"></app-combat-simulator>
     </div>
 </div>
