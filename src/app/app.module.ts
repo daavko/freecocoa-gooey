@@ -18,7 +18,8 @@ import { DefenderFormComponent } from './components/defender-form/defender-form.
 import { StoreModule } from '@ngrx/store';
 import { EffectsModule } from '@ngrx/effects';
 import { StoreDevtoolsModule } from '@ngrx/store-devtools';
-import { environment } from '../environments/environment';
+import { environment } from 'src/environments/environment';
+import { rulesetStateAppImports } from 'src/app/state/ruleset/public-api';
 
 @NgModule({
     declarations: [AppComponent, RulesetPickerComponent, AttackerFormComponent, DefenderFormComponent],
@@ -35,7 +36,8 @@ import { environment } from '../environments/environment';
         MatProgressSpinnerModule,
         StoreModule.forRoot({}, {}),
         EffectsModule.forRoot([]),
-        StoreDevtoolsModule.instrument({ maxAge: 25, logOnly: environment.production })
+        !environment.production ? StoreDevtoolsModule.instrument({ maxAge: 25 }) : [],
+        ...rulesetStateAppImports
     ],
     providers: [{ provide: MAT_FORM_FIELD_DEFAULT_OPTIONS, useValue: { appearance: 'outline' } }],
     bootstrap: [AppComponent]

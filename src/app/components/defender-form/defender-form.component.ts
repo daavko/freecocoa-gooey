@@ -46,7 +46,7 @@ export class DefenderFormComponent {
         this.ruleset$ = combatCalculator.ruleset$;
         this.units$ = this.ruleset$.pipe(
             map((ruleset) => {
-                return ruleset.unitTypes.sort((a, b) => {
+                return [...ruleset.unitTypes].sort((a, b) => {
                     return collator.compare(a.name, b.name);
                 });
             })

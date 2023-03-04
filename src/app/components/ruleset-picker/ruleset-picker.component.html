@@ -10,24 +10,10 @@
         </mat-select>
     </mat-form-field>
     <mat-form-field color="primary">
-        <mat-label>effects.ruleset URL</mat-label>
-        <input matInput formControlName="effectsUrl" [readonly]="readonlyInputs$ | async" />
-        <mat-error *ngIf="isInvalid(pickerForm.controls.effectsUrl)">
-            {{ getError(pickerForm.controls.effectsUrl) }}
-        </mat-error>
-    </mat-form-field>
-    <mat-form-field color="primary">
-        <mat-label>terrain.ruleset URL</mat-label>
-        <input matInput formControlName="terrainUrl" [readonly]="readonlyInputs$ | async" />
-        <mat-error *ngIf="isInvalid(pickerForm.controls.terrainUrl)">
-            {{ getError(pickerForm.controls.terrainUrl) }}
-        </mat-error>
-    </mat-form-field>
-    <mat-form-field color="primary">
-        <mat-label>units.ruleset URL</mat-label>
-        <input matInput formControlName="unitsUrl" [readonly]="readonlyInputs$ | async" />
-        <mat-error *ngIf="isInvalid(pickerForm.controls.unitsUrl)">
-            {{ getError(pickerForm.controls.unitsUrl) }}
+        <mat-label>Base URL</mat-label>
+        <input matInput formControlName="baseUrl" [readonly]="readonlyInputs$ | async" />
+        <mat-error *ngIf="isInvalid(pickerForm.controls.baseUrl)">
+            {{ getError(pickerForm.controls.baseUrl) }}
         </mat-error>
     </mat-form-field>
     <button
