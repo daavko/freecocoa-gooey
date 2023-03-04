@@ -1,4 +1,4 @@
-import { VeteranLevel } from 'src/app/models/ruleset.model';
+import { Terrain, UnitType, VeteranLevel } from 'src/app/models/ruleset.model';
 
 export interface WorldState {
     attacker: AttackerInfo;
@@ -6,17 +6,17 @@ export interface WorldState {
 }
 
 export interface AttackerInfo {
-    unitId: string;
+    unitType: UnitType;
     veteranLevel: VeteranLevel;
     hp: number;
     moves: number;
 }
 
 export interface DefenderInfo {
-    unitId: string;
+    unitType: UnitType;
     veteranLevel: VeteranLevel;
     hp: number;
-    terrainId: string;
+    terrain: Terrain;
     isInCity: boolean;
     citySize: number;
     isFortified: boolean;

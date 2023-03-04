@@ -1,9 +1,9 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { CombatCalculationService } from 'src/app/services/combat-calculation.service';
-import { combineLatest, filter, map, Observable } from 'rxjs';
-import { Ruleset, UnitType, VeteranLevel } from 'src/app/models/ruleset.model';
-import { getUnitTypeById } from 'src/app/utils/ruleset-utils';
+import { filter, map, Observable, tap } from 'rxjs';
+import { UnitType, VeteranLevel } from 'src/app/models/ruleset.model';
+import { AttackerInfo } from 'src/app/models/combat-info.model';
+import { RulesetFacade } from 'src/app/state/ruleset/public-api';
 
 @Component({
     selector: 'app-attacker-form',
@@ -12,78 +12,62 @@ import { getUnitTypeById } from 'src/app/utils/ruleset-utils';
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AttackerFormComponent {
-    public attackerForm = new FormGroup({
-        unit: new FormControl<string>('', [Validators.required]),
-        veteran: new FormControl<VeteranLevel | null>(null, [Validators.required]),
+    @Input()
+    public unitTypes: UnitType[] = [];
+
+    @Output()
+    public readonly attackerInfo = new EventEmitter<AttackerInfo>();
+
+    public readonly attackerForm = new FormGroup({
+        unitType: new FormControl<UnitType | null>(null, [Validators.required]),
+        veteranLevel: new FormControl<VeteranLevel | null>(null, [Validators.required]),
         hp: new FormControl<number>(0),
         moves: new FormControl<number>(0)
     });
 
-    public ruleset$: Observable<Ruleset>;
-    public units$: Observable<UnitType[]>;
-    public attackerVeteranLevels$: Observable<VeteranLevel[]>;
-    public attackerMaxHp$: Observable<number>;
+    public readonly availableVeteranLevels$: Observable<VeteranLevel[]>;
+    public readonly maxHp$: Observable<number>;
+    public readonly moveFrags$: Observable<number>;
 
     private lastKnownMoveFrags = 0;
 
-    constructor(private combatCalculator: CombatCalculationService) {
-        const collator = new Intl.Collator('en');
-
-        this.ruleset$ = combatCalculator.ruleset$;
-        this.ruleset$.subscribe((ruleset) => {
-            this.lastKnownMoveFrags = ruleset.moveFrags;
-        });
-        this.units$ = this.ruleset$.pipe(
-            map((ruleset) => {
-                return [...ruleset.unitTypes].sort((a, b) => {
-                    return collator.compare(a.name, b.name);
-                });
+    constructor(rulesetFacade: RulesetFacade) {
+        const attackerUnitType$ = this.attackerForm.controls.unitType.valueChanges.pipe(
+            filter((value): value is UnitType => value !== null)
+        );
+        this.availableVeteranLevels$ = attackerUnitType$.pipe(map((attacker) => attacker.veteranLevels));
+        this.maxHp$ = attackerUnitType$.pipe(map((attacker) => attacker.hitpoints));
+        this.moveFrags$ = rulesetFacade.ruleset$.pipe(
+            map((ruleset) => ruleset.moveFrags),
+            tap((moveFrags) => {
+                this.lastKnownMoveFrags = moveFrags;
             })
         );
-
-        const attackerUnit$ = combineLatest([
-            this.ruleset$,
-            this.attackerForm.controls.unit.valueChanges.pipe(filter((value): value is string => value !== null))
-        ]).pipe(map(([ruleset, attacker]) => getUnitTypeById(ruleset, attacker)));
-        this.attackerVeteranLevels$ = combineLatest([this.ruleset$, attackerUnit$]).pipe(
-            map(([ruleset, attacker]) => {
-                return attacker.veteranLevels.length > 0 ? attacker.veteranLevels : ruleset.defaultVeteranLevels;
-            })
-        );
-        this.attackerMaxHp$ = attackerUnit$.pipe(map((attacker) => attacker.hitpoints));
-        combineLatest([attackerUnit$, this.attackerVeteranLevels$]).subscribe(([unit, availableVeteranLevels]) => {
-            this.attackerForm.patchValue({
-                veteran: availableVeteranLevels[0],
-                hp: unit.hitpoints,
-                moves: this.lastKnownMoveFrags
-            });
-        });
 
         this.attackerForm.valueChanges.subscribe(() => {
             if (this.attackerForm.invalid) {
                 return;
             }
 
-            const {
-                unit: { value: unitId },
-                veteran: { value: veteranLevel },
-                hp: { value: hp },
-                moves: { value: moves }
-            } = this.attackerForm.controls;
-            this.combatCalculator.pushAttackerInfo({
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- can't be null
-                unitId: unitId!,
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- can't be null
-                veteranLevel: veteranLevel!,
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- can't be null
-                hp: hp!,
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- can't be null
-                moves: moves!
-            });
+            const { unitType, veteranLevel, hp, moves } = this.attackerForm.value;
+            if (unitType == null || veteranLevel == null || hp == null || moves == null) {
+                return;
+            }
+
+            // TODO: emit attackerInfo
         });
     }
 
     public formatMoves(value: number): string {
         return value === 9 ? '\u{2265}1' : `${value}/${this.lastKnownMoveFrags}`;
+    }
+
+    public unitTypeSelectionChanged(): void {
+        const currentUnitType = this.attackerForm.controls.unitType.value;
+        this.attackerForm.patchValue({
+            veteranLevel: currentUnitType?.veteranLevels[0] ?? null,
+            hp: currentUnitType?.hitpoints ?? 0,
+            moves: this.lastKnownMoveFrags
+        });
     }
 }

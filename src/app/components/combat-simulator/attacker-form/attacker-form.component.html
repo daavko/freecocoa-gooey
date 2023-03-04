@@ -2,16 +2,14 @@
     <div class="flex">
         <mat-form-field>
             <mat-label>Attacking unit</mat-label>
-            <mat-select formControlName="unit">
-                <mat-option>Select a unit</mat-option>
-                <mat-option *ngFor="let option of units$ | async" [value]="option.id">{{ option.name }}</mat-option>
+            <mat-select formControlName="unitType" (selectionChange)="unitTypeSelectionChanged()">
+                <mat-option *ngFor="let unitType of unitTypes" [value]="unitType">{{ unitType.name }}</mat-option>
             </mat-select>
         </mat-form-field>
         <mat-form-field>
             <mat-label>Veteran level</mat-label>
-            <mat-select formControlName="veteran">
-                <mat-option>Select a level</mat-option>
-                <mat-option *ngFor="let level of attackerVeteranLevels$ | async" [value]="level">{{
+            <mat-select formControlName="veteranLevel" [disabled]="attackerForm.controls.unitType.invalid">
+                <mat-option *ngFor="let level of availableVeteranLevels$ | async" [value]="level">{{
                     level.name
                 }}</mat-option>
             </mat-select>
@@ -22,8 +20,9 @@
         <mat-slider
             class="flex-grow"
             formControlName="hp"
+            [disabled]="attackerForm.controls.unitType.invalid"
             min="0"
-            [max]="(attackerMaxHp$ | async) ?? 0"
+            [max]="(maxHp$ | async) ?? 0"
             step="1"
             thumbLabel
             tickInterval="1"></mat-slider>
@@ -33,8 +32,9 @@
         <mat-slider
             class="flex-grow"
             formControlName="moves"
+            [disabled]="attackerForm.controls.unitType.invalid"
             min="0"
-            [max]="(ruleset$ | async)?.moveFrags ?? 0"
+            [max]="(moveFrags$ | async) ?? 0"
             step="1"
             thumbLabel
             [displayWith]="formatMoves.bind(this)"
