@@ -4,7 +4,6 @@
         <button
             *ngIf="showBackToRulesetPickerButton$ | async"
             mat-stroked-button
-            color="accent"
             class="toolbar__back"
             (click)="backToRulesetSelection()">
             Back to ruleset selection
@@ -12,7 +11,6 @@
         <button
             *ngIf="showBackToToolPickerButton | async"
             mat-stroked-button
-            color="accent"
             class="toolbar__back"
             (click)="backToToolSelection()">
             Back to tool selection
