@@ -20,9 +20,11 @@
     </div>
 </mat-toolbar>
 <div class="app-container">
-    <div class="content-container">
-        <app-ruleset-picker *ngIf="(screen$ | async) === 'rulesetPick'"></app-ruleset-picker>
-        <app-tool-picker *ngIf="(screen$ | async) === 'toolPick'"></app-tool-picker>
-        <app-combat-simulator *ngIf="(screen$ | async) === 'combatForm'"></app-combat-simulator>
+    <div class="content-container" [ngSwitch]="screen$ | async">
+        <app-ruleset-picker *ngSwitchCase="'rulesetPick'"></app-ruleset-picker>
+        <app-tool-picker *ngSwitchCase="'toolPick'"></app-tool-picker>
+        <app-combat-simulator *ngSwitchCase="'combatForm'"></app-combat-simulator>
+        <app-bribe-cost-calculator *ngSwitchCase="'bribeCostForm'"></app-bribe-cost-calculator>
+        <app-incite-cost-calculator *ngSwitchCase="'inciteCostForm'"></app-incite-cost-calculator>
     </div>
 </div>
