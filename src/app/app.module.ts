@@ -15,6 +15,10 @@ import { MatSliderModule } from '@angular/material/slider';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AttackerFormComponent } from './components/attacker-form/attacker-form.component';
 import { DefenderFormComponent } from './components/defender-form/defender-form.component';
+import { StoreModule } from '@ngrx/store';
+import { EffectsModule } from '@ngrx/effects';
+import { StoreDevtoolsModule } from '@ngrx/store-devtools';
+import { environment } from '../environments/environment';
 
 @NgModule({
     declarations: [AppComponent, RulesetPickerComponent, AttackerFormComponent, DefenderFormComponent],
@@ -28,7 +32,10 @@ import { DefenderFormComponent } from './components/defender-form/defender-form.
         MatInputModule,
         MatCheckboxModule,
         MatSliderModule,
-        MatProgressSpinnerModule
+        MatProgressSpinnerModule,
+        StoreModule.forRoot({}, {}),
+        EffectsModule.forRoot([]),
+        StoreDevtoolsModule.instrument({ maxAge: 25, logOnly: environment.production })
     ],
     providers: [{ provide: MAT_FORM_FIELD_DEFAULT_OPTIONS, useValue: { appearance: 'outline' } }],
     bootstrap: [AppComponent]
