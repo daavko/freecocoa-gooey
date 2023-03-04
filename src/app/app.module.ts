@@ -26,8 +26,8 @@ import { StoreDevtoolsModule } from '@ngrx/store-devtools';
 import { AppComponent } from './app.component';
 import { RulesetPickerComponent } from './components/ruleset-picker/ruleset-picker.component';
 import { ToolPickerComponent } from 'src/app/components/util-picker/tool-picker.component';
-import { AttackerFormComponent } from './components/attacker-form/attacker-form.component';
-import { DefenderFormComponent } from './components/defender-form/defender-form.component';
+import { AttackerFormComponent } from './components/combat-simulator/attacker-form/attacker-form.component';
+import { DefenderFormComponent } from './components/combat-simulator/defender-form/defender-form.component';
 import { CombatSimulatorComponent } from './components/combat-simulator/combat-simulator.component';
 
 // misc
