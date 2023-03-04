@@ -1,40 +1,32 @@
+<mat-toolbar>
+    <div class="toolbar">
+        <h1 [ngSwitch]="screen$ | async">
+            <ng-container *ngSwitchCase="'rulesetPick'">Choose a ruleset</ng-container>
+            <ng-container *ngSwitchCase="'utilPick'">Choose your util</ng-container>
+            <ng-container *ngSwitchCase="'combatForm'">Combat simulator</ng-container>
+        </h1>
+        <button
+            *ngIf="showBackToRulesetButton$ | async"
+            mat-stroked-button
+            color="accent"
+            class="toolbar__back"
+            (click)="backToRulesetSelection()">
+            Back to ruleset selection
+        </button>
+        <button
+            *ngIf="showBackToUtilityPickerButton | async"
+            mat-stroked-button
+            color="accent"
+            class="toolbar__back"
+            (click)="backToUtilSelection()">
+            Back to util selection
+        </button>
+    </div>
+</mat-toolbar>
 <div class="app-container">
-    <div class="window-size-notice">
-        <span
-            >This page is best viewed in a window at least 1200px wide. I simply don't have the will to spend time to
-            create a site that's compatible with smaller screens. Sorry.</span
-        >
-    </div>
-    <div class="main-title">
-        <h1>Daavko's Freeciv21 combat calculator</h1>
-        <p>
-            Disclaimer: Author is not responsible for accuracy. Feel free to report any issues you find, but don't cry
-            to me if you lose any battles due to inaccuracies in this calculator
-        </p>
-        <p>Not implemented: Defense bonus from rivers (combat.cpp:583-584)</p>
-        <p>Not implemented: "Land bombardment" logic (combat.cpp:396)</p>
-    </div>
-    <app-ruleset-picker></app-ruleset-picker>
-    <div>
-        <div class="unit-info-container">
-            <div>
-                <h2>Attacking unit info</h2>
-                <app-attacker-form></app-attacker-form>
-                <h2>Defending unit info</h2>
-                <app-defender-form></app-defender-form>
-            </div>
-
-            <div>
-                <h2>Results</h2>
-                <ng-container *ngIf="combatResults$ | async as results">
-                    <p>Attacker win chance: {{ results.attacker.winChance * 100 | number : '1.0-2' }}%</p>
-                    <p>Attacker average lost hp: {{ results.attacker.averageLostHp | number : '1.0-1' }}</p>
-                    <p>Attacker lost hp std error: {{ results.attacker.lostHpStdError | number : '1.0-2' }}</p>
-                    <p>Defender win chance: {{ results.defender.winChance * 100 | number : '1.0-2' }}%</p>
-                    <p>Defender average lost hp: {{ results.defender.averageLostHp | number : '1.0-1' }}</p>
-                    <p>Defender lost hp std error: {{ results.defender.lostHpStdError | number : '1.0-2' }}</p>
-                </ng-container>
-            </div>
-        </div>
+    <div class="content-container">
+        <app-ruleset-picker *ngIf="(screen$ | async) === 'rulesetPick'"></app-ruleset-picker>
+        <app-util-picker *ngIf="(screen$ | async) === 'utilPick'"></app-util-picker>
+        <app-combat-simulator *ngIf="(screen$ | async) === 'combatForm'"></app-combat-simulator>
     </div>
 </div>

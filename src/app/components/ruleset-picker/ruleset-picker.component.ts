@@ -1,7 +1,7 @@
-import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { combineLatest, map, Observable } from 'rxjs';
 import { AbstractControl, FormControl, FormGroup, Validators } from '@angular/forms';
-import { RulesetPresetName, rulesetPresets } from 'src/app/models/ruleset-picker.model';
+import { RulesetPreset, rulesetPresets } from 'src/app/components/ruleset-picker/ruleset-picker.model';
 import { RulesetFetchService } from 'src/app/services/ruleset-fetch.service';
 import { CombatCalculationService } from 'src/app/services/combat-calculation.service';
 import { RulesetFacade } from 'src/app/state/ruleset/public-api';
@@ -14,9 +14,10 @@ import { isValidUrl, noGithubComUrl } from 'src/app/utils/form-utils';
     styleUrls: ['./ruleset-picker.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class RulesetPickerComponent implements OnInit {
+export class RulesetPickerComponent {
+    public readonly rulesetPresets = rulesetPresets;
+
     public pickerForm = new FormGroup({
-        preset: new FormControl<RulesetPresetName>({ value: 'none', disabled: false }),
         baseUrl: new FormControl<string>({ value: '', disabled: false }, [
             Validators.required,
             isValidUrl,
@@ -33,31 +34,26 @@ export class RulesetPickerComponent implements OnInit {
         private combatCalculator: CombatCalculationService
     ) {
         this.loadState$ = this.rulesetFacade.rulesetLoadingState$;
-        this.readonlyInputs$ = combineLatest([this.pickerForm.controls.preset.valueChanges, this.loadState$]).pipe(
-            map(([formValue, loadState]) => formValue !== 'none' || loadState === 'loading')
-        );
+        this.readonlyInputs$ = combineLatest([this.loadState$]).pipe(map(([loadState]) => loadState === 'loading'));
 
         // todo: rewrite so calculator isn't used directly
-        this.rulesetFacade.ruleset$.subscribe((ruleset) => this.combatCalculator.setRuleset(ruleset));
-    }
-
-    public ngOnInit(): void {
-        this.pickerForm.controls.preset.valueChanges.subscribe((value) => {
-            if (value !== null) {
-                const { baseUrl } = rulesetPresets[value];
-                this.pickerForm.controls.baseUrl.setValue(baseUrl);
-            }
+        this.rulesetFacade.ruleset$.subscribe((ruleset) => {
+            this.combatCalculator.setRuleset(ruleset);
         });
     }
 
-    public loadRuleset(): void {
+    public loadRulesetPreset(preset: RulesetPreset): void {
+        this.rulesetFacade.loadRuleset(preset.baseUrl, 'preset', preset.label);
+    }
+
+    public loadCustomRuleset(): void {
         const { baseUrl } = this.pickerForm.getRawValue();
 
         if (baseUrl === null) {
             throw new Error('this should never happen');
         }
 
-        this.rulesetFacade.loadRuleset(baseUrl);
+        this.rulesetFacade.loadRuleset(baseUrl, 'custom', 'Custom ruleset');
     }
 
     public isInvalid(control: AbstractControl): boolean {

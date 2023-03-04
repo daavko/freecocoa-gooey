@@ -4,7 +4,7 @@
     display: block;
 }
 
-.ruleset-preset-cards {
+.util-cards {
     max-width: 1200px;
     margin-inline: auto;
     display: grid;
@@ -12,7 +12,7 @@
     gap: 16px;
 }
 
-.ruleset-card {
+.util-card {
     cursor: pointer;
 
     &:hover {
@@ -21,24 +21,5 @@
 
     &__title {
         text-align: center;
-    }
-}
-
-.custom-ruleset-card {
-    &__form {
-        display: flex;
-        flex-direction: column;
-    }
-}
-
-.ruleset-picker__container {
-    display: flex;
-    flex-direction: column;
-}
-
-.ruleset-picker__send {
-    mat-spinner {
-        display: inline-block;
-        margin-right: 8px;
     }
 }

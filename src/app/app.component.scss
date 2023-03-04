@@ -5,34 +5,23 @@
     display: block;
 }
 
+.toolbar {
+    display: flex;
+    flex-direction: row;
+    max-width: 1200px;
+    flex: 1 1 1200px;
+    margin-inline: auto;
+
+    &__back {
+        margin-left: auto;
+    }
+}
+
 .app-container {
+    padding: 16px;
+}
+
+.content-container {
     max-width: 1200px;
     margin-inline: auto;
-    display: grid;
-    grid-template-columns: 400px 1fr;
-    padding: 32px;
-    gap: 32px;
-}
-
-.window-size-notice {
-    @media (width >= 1200px) {
-        display: none;
-    }
-
-    @media (width < 1200px) {
-        grid-column: span 2;
-        padding: 16px;
-        border-radius: 8px;
-        background-color: mat.get-color-from-palette(theme.$warn-palette, 700);
-    }
-}
-
-.main-title {
-    grid-column: span 2;
-}
-
-.unit-info-container {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
 }
