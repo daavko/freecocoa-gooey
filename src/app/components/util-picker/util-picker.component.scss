@@ -1,0 +1,25 @@
+@use '@angular/material' as mat;
+
+:host {
+    display: block;
+}
+
+.util-cards {
+    max-width: 1200px;
+    margin-inline: auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 16px;
+}
+
+.util-card {
+    cursor: pointer;
+
+    &:hover {
+        @include mat.elevation(6);
+    }
+
+    &__title {
+        text-align: center;
+    }
+}

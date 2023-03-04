@@ -1,5 +1,34 @@
+@use '@angular/material' as mat;
+
 :host {
     display: block;
+}
+
+.ruleset-preset-cards {
+    max-width: 1200px;
+    margin-inline: auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 16px;
+}
+
+.ruleset-card {
+    cursor: pointer;
+
+    &:hover {
+        @include mat.elevation(6);
+    }
+
+    &__title {
+        text-align: center;
+    }
+}
+
+.custom-ruleset-card {
+    &__form {
+        display: flex;
+        flex-direction: column;
+    }
 }
 
 .ruleset-picker__container {

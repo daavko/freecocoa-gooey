@@ -1,25 +1,26 @@
-export type RulesetLoadState = 'beforeLoad' | 'loading' | 'loaded' | 'error';
-
-export type RulesetPresetName = 'none' | 'ltx' | 'ltt' | 'lt76';
-
 export interface RulesetPreset {
+    name: string;
+    label: string;
     baseUrl: string;
 }
 
 const longturnLttLtxUrlBase = 'https://raw.githubusercontent.com/longturn/LTT-LTX/master';
 const longturnGamesUrlBase = 'https://raw.githubusercontent.com/longturn/games/master';
 
-export const rulesetPresets: Record<RulesetPresetName, RulesetPreset> = {
-    none: {
-        baseUrl: ''
-    },
-    ltt: {
+export const rulesetPresets: RulesetPreset[] = [
+    {
+        name: 'ltt',
+        label: 'LTT (LongTurn Traditional)',
         baseUrl: `${longturnLttLtxUrlBase}/LTT/data/LTT`
     },
-    ltx: {
+    {
+        name: 'ltx',
+        label: 'LTX (LongTurn eXtended)',
         baseUrl: `${longturnLttLtxUrlBase}/LTX/data/LTX`
     },
-    lt76: {
+    {
+        name: 'lt76',
+        label: 'LT76Team LTX snapshot',
         baseUrl: `${longturnGamesUrlBase}/LT76Team/data/LT76Team`
     }
-};
+];

@@ -4,6 +4,7 @@ import { rulesetQuery } from 'src/app/state/ruleset/ruleset.selectors';
 import { filter } from 'rxjs';
 import { notNull } from 'src/app/utils/rxjs-utils';
 import { rulesetActions } from 'src/app/state/ruleset/ruleset.actions';
+import { RulesetType } from 'src/app/state/ruleset/ruleset-state-model';
 
 @Injectable({ providedIn: 'root' })
 export class RulesetFacade {
@@ -12,7 +13,11 @@ export class RulesetFacade {
 
     constructor(private store: Store) {}
 
-    public loadRuleset(baseUrl: string): void {
-        this.store.dispatch(rulesetActions.loadRuleset({ baseUrl }));
+    public loadRuleset(baseUrl: string, type: RulesetType, label: string): void {
+        this.store.dispatch(rulesetActions.loadRuleset({ baseUrl, rulesetType: type, label }));
+    }
+
+    public reset(): void {
+        this.store.dispatch(rulesetActions.resetRuleset());
     }
 }

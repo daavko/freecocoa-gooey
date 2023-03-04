@@ -1,33 +1,32 @@
-<form class="ruleset-picker__container" [formGroup]="pickerForm">
-    <h2>Ruleset</h2>
-    <mat-form-field color="primary">
-        <mat-label>Ruleset presets</mat-label>
-        <mat-select [value]="'none'" formControlName="preset">
-            <mat-option [value]="'none'">None</mat-option>
-            <mat-option [value]="'ltt'">LTT (latest)</mat-option>
-            <mat-option [value]="'ltx'">LTX (latest)</mat-option>
-            <mat-option [value]="'lt76'">LT76</mat-option>
-        </mat-select>
-    </mat-form-field>
-    <mat-form-field color="primary">
-        <mat-label>Base URL</mat-label>
-        <input matInput formControlName="baseUrl" [readonly]="readonlyInputs$ | async" />
-        <mat-error *ngIf="isInvalid(pickerForm.controls.baseUrl)">
-            {{ getError(pickerForm.controls.baseUrl) }}
-        </mat-error>
-    </mat-form-field>
-    <button
-        class="ruleset-picker__send"
-        mat-raised-button
-        [color]="(loadState$ | async) === 'error' ? 'warn' : 'accent'"
-        [disabled]="pickerForm.invalid || (loadState$ | async) === 'loading'"
-        [ngSwitch]="loadState$ | async"
-        (click)="loadRuleset()">
-        <ng-container *ngSwitchCase="'beforeLoad'">Load ruleset</ng-container>
-        <ng-container *ngSwitchCase="'loading'"
-            ><mat-spinner diameter="24" color="primary"></mat-spinner>Loading ruleset...</ng-container
-        >
-        <ng-container *ngSwitchCase="'loaded'">Ruleset loaded. Reload?</ng-container>
-        <ng-container *ngSwitchCase="'error'">Error when loading ruleset, try again?</ng-container>
-    </button>
-</form>
+<div class="ruleset-preset-cards">
+    <mat-card class="ruleset-card" *ngFor="let preset of rulesetPresets" (click)="loadRulesetPreset(preset)">
+        <mat-card-content>
+            <h3 class="ruleset-card__title">{{ preset.label }}</h3>
+        </mat-card-content>
+    </mat-card>
+    <mat-card class="custom-ruleset-card">
+        <mat-card-title>
+            <h3>Custom ruleset</h3>
+        </mat-card-title>
+        <mat-card-content>
+            <form class="custom-ruleset-card__form" [formGroup]="pickerForm">
+                <mat-form-field color="primary">
+                    <mat-label>Ruleset base URL</mat-label>
+                    <input matInput formControlName="baseUrl" [readonly]="(loadState$ | async) === 'loading'" />
+                    <mat-error *ngIf="isInvalid(pickerForm.controls.baseUrl)">
+                        {{ getError(pickerForm.controls.baseUrl) }}
+                    </mat-error>
+                </mat-form-field>
+            </form>
+        </mat-card-content>
+        <mat-card-actions align="end">
+            <button
+                mat-button
+                color="accent"
+                [disabled]="pickerForm.invalid || (loadState$ | async) === 'loading'"
+                (click)="loadCustomRuleset()">
+                Load ruleset
+            </button>
+        </mat-card-actions>
+    </mat-card>
+</div>

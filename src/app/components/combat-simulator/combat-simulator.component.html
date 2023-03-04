@@ -1,0 +1,23 @@
+<h1>Gooey - combat calculator</h1>
+<p>Not implemented: Defense bonus from rivers (<code>combat.cpp:583-584</code>)</p>
+<p>Not implemented: "Land bombardment" logic (<code>combat.cpp:396</code>)</p>
+<div class="unit-info-container">
+    <div>
+        <h2>Attacking unit info</h2>
+        <app-attacker-form></app-attacker-form>
+        <h2>Defending unit info</h2>
+        <app-defender-form></app-defender-form>
+    </div>
+
+    <div>
+        <h2>Results</h2>
+        <ng-container *ngIf="combatResults$ | async as results">
+            <p>Attacker win chance: {{ results.attacker.winChance * 100 | number : '1.0-2' }}%</p>
+            <p>Attacker average lost hp: {{ results.attacker.averageLostHp | number : '1.0-1' }}</p>
+            <p>Attacker lost hp std error: {{ results.attacker.lostHpStdError | number : '1.0-2' }}</p>
+            <p>Defender win chance: {{ results.defender.winChance * 100 | number : '1.0-2' }}%</p>
+            <p>Defender average lost hp: {{ results.defender.averageLostHp | number : '1.0-1' }}</p>
+            <p>Defender lost hp std error: {{ results.defender.lostHpStdError | number : '1.0-2' }}</p>
+        </ng-container>
+    </div>
+</div>

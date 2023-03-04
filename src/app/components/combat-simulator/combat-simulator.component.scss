@@ -1,0 +1,9 @@
+:host {
+    display: block;
+}
+
+.unit-info-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}

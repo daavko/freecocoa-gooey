@@ -1,11 +1,13 @@
 import { createActionGroup, emptyProps, props } from '@ngrx/store';
 import { Ruleset } from 'src/app/models/ruleset.model';
+import { RulesetType } from 'src/app/state/ruleset/ruleset-state-model';
 
 export const rulesetActions = createActionGroup({
     source: 'Ruleset',
     events: {
-        'Load Ruleset': props<{ baseUrl: string }>(),
-        'Load Ruleset Success': props<{ ruleset: Ruleset }>(),
-        'Load Ruleset Error': emptyProps()
+        'Load Ruleset': props<{ rulesetType: RulesetType; label: string; baseUrl: string }>(),
+        'Load Ruleset Success': props<{ rulesetType: RulesetType; label: string; ruleset: Ruleset }>(),
+        'Load Ruleset Error': emptyProps(),
+        'Reset Ruleset': emptyProps()
     }
 });
