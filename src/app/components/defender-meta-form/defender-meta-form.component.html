@@ -6,10 +6,16 @@
         </mat-select>
     </mat-form-field>
     <div class="formutils__two-cols">
-        <mat-checkbox formControlName="isInCity" (change)="isInCityChanged($event.checked)">Inside a city</mat-checkbox>
+        <mat-checkbox formControlName="isInCity">Inside a city</mat-checkbox>
         <mat-form-field subscriptSizing="dynamic">
             <mat-label>City size</mat-label>
-            <input matInput formControlName="citySize" type="number" min="1" max="99" />
+            <input
+                matInput
+                formControlName="citySize"
+                type="number"
+                min="1"
+                max="99"
+                [readonly]="!defenderMetaForm.controls.isInCity.value" />
         </mat-form-field>
     </div>
     <mat-form-field class="fullwidth" subscriptSizing="dynamic">

@@ -1,20 +1,21 @@
 <form [formGroup]="defenderForm" class="formutils__gaps">
-    <div class="formutils__two-cols">
-        <mat-form-field subscriptSizing="dynamic">
-            <mat-label>Defending unit</mat-label>
-            <mat-select formControlName="unitType" (selectionChange)="unitTypeSelectionChanged()">
-                <mat-option *ngFor="let unitType of unitTypes" [value]="unitType">{{ unitType.name }}</mat-option>
-            </mat-select>
-        </mat-form-field>
-        <mat-form-field subscriptSizing="dynamic">
-            <mat-label>Veteran level</mat-label>
-            <mat-select formControlName="veteranLevel">
-                <mat-option *ngFor="let level of availableVeteranLevels$ | async" [value]="level">{{
-                    level.name
-                }}</mat-option>
-            </mat-select>
-        </mat-form-field>
-    </div>
+    <mat-form-field class="fullwidth" subscriptSizing="dynamic">
+        <mat-label>Defending unit</mat-label>
+        <mat-select
+            formControlName="unitType"
+            panelClass="select-10-values"
+            (selectionChange)="unitTypeSelectionChanged()">
+            <mat-option *ngFor="let unitType of unitTypes" [value]="unitType">{{ unitType.name }}</mat-option>
+        </mat-select>
+    </mat-form-field>
+    <mat-form-field class="fullwidth" subscriptSizing="dynamic">
+        <mat-label>Veteran level</mat-label>
+        <mat-select formControlName="veteranLevel">
+            <mat-option *ngFor="let level of availableVeteranLevels$ | async" [value]="level">{{
+                level.name
+            }}</mat-option>
+        </mat-select>
+    </mat-form-field>
     <div class="formutils__single-line">
         <p class="nomargin">Defender HP</p>
         <mat-slider
