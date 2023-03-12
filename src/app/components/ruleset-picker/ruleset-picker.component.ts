@@ -2,8 +2,6 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { combineLatest, map, Observable } from 'rxjs';
 import { AbstractControl, FormControl, FormGroup, Validators } from '@angular/forms';
 import { RulesetPreset, rulesetPresets } from 'src/app/components/ruleset-picker/ruleset-picker.model';
-import { RulesetFetchService } from 'src/app/services/ruleset-fetch.service';
-import { CombatCalculationService } from 'src/app/services/combat-calculation.service';
 import { RulesetFacade } from 'src/app/state/ruleset/public-api';
 import { LoadingState } from 'src/app/utils/utility-types';
 import { isValidUrl, noGithubComUrl } from 'src/app/utils/form-utils';
@@ -28,18 +26,9 @@ export class RulesetPickerComponent {
 
     public readonly loadState$: Observable<LoadingState>;
 
-    constructor(
-        private rulesetFacade: RulesetFacade,
-        private rulesetFetch: RulesetFetchService,
-        private combatCalculator: CombatCalculationService
-    ) {
+    constructor(private rulesetFacade: RulesetFacade) {
         this.loadState$ = this.rulesetFacade.rulesetLoadingState$;
         this.readonlyInputs$ = combineLatest([this.loadState$]).pipe(map(([loadState]) => loadState === 'loading'));
-
-        // todo: rewrite so calculator isn't used directly
-        this.rulesetFacade.ruleset$.subscribe((ruleset) => {
-            this.combatCalculator.setRuleset(ruleset);
-        });
     }
 
     public loadRulesetPreset(preset: RulesetPreset): void {

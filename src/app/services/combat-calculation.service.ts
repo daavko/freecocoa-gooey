@@ -1,10 +1,9 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
 import { Ruleset, Terrain, UnitClass, UnitType, UnitTypeBonus, VeteranLevel } from 'src/app/models/ruleset.model';
-import { CombatResult, CombatResultStatistics, CombatRoundResult, WorldState } from 'src/app/models/combat-info.model';
+import { CombatResult, WorldState } from 'src/app/models/combat-info.model';
 import { EffectResolverService } from 'src/app/services/effect-resolver.service';
 import { getUnitClassByName } from 'src/app/utils/ruleset-utils';
-import { binomialProbabilityCumulative, binomialProbabilityMass, randomInt } from 'src/app/utils/number-utils';
+import { binomialProbabilityCumulative, binomialProbabilityMass } from 'src/app/utils/number-utils';
 
 // I don't know why this exists, but it does
 const POWER_FACTOR = 10;
@@ -13,13 +12,7 @@ const POWER_FACTOR = 10;
     providedIn: 'root'
 })
 export class CombatCalculationService {
-    private readonly ruleset = new BehaviorSubject<Ruleset | null>(null);
     constructor(private effectsResolver: EffectResolverService) {}
-
-    public setRuleset(ruleset: Ruleset): void {
-        console.info('Ruleset update', ruleset);
-        this.ruleset.next(ruleset);
-    }
 
     public calculateResultChances(ruleset: Ruleset, world: WorldState): [CombatResult, CombatResult] {
         const attUnitType = world.attacker.unitType;
@@ -121,105 +114,6 @@ export class CombatCalculationService {
         defenderCombatResult.hpChances.push([0, attackerWinChance]);
 
         return [attackerCombatResult, defenderCombatResult];
-    }
-
-    // Leaving this here for now, even though it's not used anywhere
-    public simulateCombat(ruleset: Ruleset, world: WorldState, combatRounds: number): CombatResultStatistics {
-        const startTime = performance.now();
-        const attUnitType = world.attacker.unitType;
-        const defUnitType = world.defender.unitType;
-
-        const attackPower = this.getTotalAttackPower(attUnitType, ruleset, world);
-        const defendPower = this.getTotalDefensePower(attUnitType, defUnitType, ruleset, world);
-
-        const [attackerFp, defenderFp] = this.getModifiedFirepower(attUnitType, defUnitType, ruleset, world);
-
-        const beforeCombatTime = performance.now();
-        const rounds: CombatRoundResult[] = [];
-        for (let i = 0; i < combatRounds; i++) {
-            rounds.push(
-                this.simulateCombatRound(
-                    attackPower,
-                    defendPower,
-                    world.attacker.hp,
-                    world.defender.hp,
-                    attackerFp,
-                    defenderFp
-                )
-            );
-        }
-
-        const afterCombatTime = performance.now();
-        const attackerWinRounds = rounds.filter((round) => round.defenderHp <= 0);
-        const defenderWinRounds = rounds.filter((round) => round.attackerHp <= 0);
-
-        let attLostHpTotal = 0;
-        let attLostHpSquaresTotal = 0;
-        let defLostHpTotal = 0;
-        let defLostHpSquaresTotal = 0;
-
-        for (const round of rounds) {
-            const attRoundLostHp = world.attacker.hp - round.attackerHp;
-            const defRoundLostHp = world.defender.hp - round.defenderHp;
-            attLostHpTotal += attRoundLostHp;
-            attLostHpSquaresTotal += attRoundLostHp ** 2;
-            defLostHpTotal += defRoundLostHp;
-            defLostHpSquaresTotal += defRoundLostHp ** 2;
-        }
-
-        const attackerAvgLostHp = attLostHpTotal / rounds.length;
-        const defenderAvgLostHp = defLostHpTotal / rounds.length;
-
-        const attackerAvgLostHpSquares = attLostHpSquaresTotal / rounds.length;
-        const defenderAvgLostHpSquares = defLostHpSquaresTotal / rounds.length;
-        const attackerLostHpStdError = Math.sqrt(attackerAvgLostHpSquares - attackerAvgLostHp ** 2);
-        const defenderLostHpStdError = Math.sqrt(defenderAvgLostHpSquares - defenderAvgLostHp ** 2);
-
-        const endTime = performance.now();
-        console.log(
-            `effects ${beforeCombatTime - startTime}, calc ${afterCombatTime - beforeCombatTime}, stats ${
-                endTime - afterCombatTime
-            }`
-        );
-        return {
-            attacker: {
-                winChance: attackerWinRounds.length / combatRounds,
-                averageLostHp: attackerAvgLostHp,
-                lostHpStdError: attackerLostHpStdError
-            },
-            defender: {
-                winChance: defenderWinRounds.length / combatRounds,
-                averageLostHp: defenderAvgLostHp,
-                lostHpStdError: defenderLostHpStdError
-            }
-        };
-    }
-
-    private simulateCombatRound(
-        attackPower: number,
-        defendPower: number,
-        attackerStartingHp: number,
-        defenderStartingHp: number,
-        attackerFp: number,
-        defenderFp: number
-    ): CombatRoundResult {
-        let attackerHp = attackerStartingHp;
-        let defenderHp = defenderStartingHp;
-
-        // TODO: variable combat rounds - unittools.cpp:291
-
-        while (attackerHp > 0 && defenderHp > 0) {
-            if (randomInt(0, attackPower + defendPower) >= defendPower) {
-                defenderHp -= attackerFp;
-            } else {
-                attackerHp -= defenderFp;
-            }
-        }
-
-        return {
-            attackerHp,
-            defenderHp
-        };
     }
 
     private getModifiedFirepower(
