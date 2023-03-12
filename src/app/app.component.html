@@ -1,6 +1,6 @@
 <mat-toolbar>
     <div class="toolbar">
-        <h1 [ngSwitch]="screen$ | async">{{ toolbarTitle$ | async }}</h1>
+        <span class="toolbar__title">{{ toolbarTitle$ | async }}</span>
         <button
             *ngIf="showBackToRulesetPickerButton$ | async"
             mat-stroked-button

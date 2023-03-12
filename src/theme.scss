@@ -3,6 +3,7 @@
 
 $my-primary: mat.define-palette(mat.$light-blue-palette, 500);
 $my-accent: mat.define-palette(mat.$amber-palette, A200, A100, A400);
+$my-typography: mat.define-typography-config();
 
 $my-theme: mat.define-dark-theme(
     (
@@ -10,7 +11,7 @@ $my-theme: mat.define-dark-theme(
             primary: $my-primary,
             accent: $my-accent
         ),
-        typography: mat.define-typography-config()
+        typography: $my-typography
     )
 );
 

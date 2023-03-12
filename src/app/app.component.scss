@@ -12,6 +12,10 @@
     flex: 1 1 1400px;
     margin-inline: auto;
 
+    &__title {
+        line-height: 36px;
+    }
+
     &__back {
         margin-left: auto;
     }

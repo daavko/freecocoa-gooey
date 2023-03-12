@@ -24,9 +24,10 @@
             min="0"
             [max]="(maxHp$ | async) ?? 0"
             step="1"
-            value="5"
-            thumbLabel
-            tickInterval="1"></mat-slider>
+            discrete
+            showTickMarks>
+            <input matSliderThumb value="0" />
+        </mat-slider>
     </div>
     <mat-checkbox formControlName="isFortified">Fortified</mat-checkbox>
 </form>

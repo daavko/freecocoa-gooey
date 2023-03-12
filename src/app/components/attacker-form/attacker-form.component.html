@@ -24,8 +24,10 @@
             min="0"
             [max]="(maxHp$ | async) ?? 0"
             step="1"
-            thumbLabel
-            tickInterval="1"></mat-slider>
+            discrete
+            showTickMarks>
+            <input matSliderThumb />
+        </mat-slider>
     </div>
     <div class="formutils__single-line">
         <p class="nomargin">Remaining moves</p>
@@ -36,8 +38,10 @@
             min="0"
             [max]="(moveFrags$ | async) ?? 0"
             step="1"
-            thumbLabel
-            [displayWith]="formatMoves.bind(this)"
-            tickInterval="1"></mat-slider>
+            discrete
+            showTickMarks
+            [displayWith]="formatMoves.bind(this)">
+            <input matSliderThumb />
+        </mat-slider>
     </div>
 </form>
