@@ -1,4 +1,4 @@
-import { Terrain, UnitType, VeteranLevel } from 'src/app/models/ruleset.model';
+import { Terrain, TerrainExtra, UnitType, VeteranLevel } from 'src/app/models/ruleset.model';
 
 export interface WorldState {
     attacker: AttackerInfo;
@@ -24,7 +24,7 @@ export interface DefenderMetaInfo {
     terrain: Terrain;
     isInCity: boolean;
     citySize: number;
-    extras: string[];
+    extras: TerrainExtra[];
     buildings: string[];
     wonders: string[];
 }

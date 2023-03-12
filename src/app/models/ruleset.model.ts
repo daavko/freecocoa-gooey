@@ -4,6 +4,7 @@ export interface Ruleset {
     unitClasses: UnitClass[];
     defaultVeteranLevels: VeteranLevel[];
     terrainTypes: Terrain[];
+    terrainExtras: TerrainExtra[];
     moveFrags: number;
 }
 
@@ -81,4 +82,12 @@ export interface Terrain {
     id: string;
     name: string;
     defenseBonus: number;
+    nativeUnitClasses: string[];
+}
+
+export interface TerrainExtra {
+    id: string;
+    name: string;
+    defenseBonus: number;
+    nativeUnitClasses: string[];
 }
