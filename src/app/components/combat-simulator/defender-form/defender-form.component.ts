@@ -1,10 +1,10 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { filter, map, Observable } from 'rxjs';
-import { Terrain, UnitType, VeteranLevel } from 'src/app/models/ruleset.model';
+import { RequirementRange, Terrain, UnitType, VeteranLevel } from 'src/app/models/ruleset.model';
 import { DefenderInfo } from 'src/app/models/combat-info.model';
 import { RulesetFacade } from 'src/app/state/ruleset/public-api';
-import { CombatCalculationService } from 'src/app/services/combat-calculation.service';
+import { isOriginalItemIndex } from 'src/app/utils/array-utils';
 
 @Component({
     selector: 'app-defender-form',
@@ -39,7 +39,7 @@ export class DefenderFormComponent {
     public readonly buildings$: Observable<string[]>;
     public readonly wonders$: Observable<string[]>;
 
-    constructor(rulesetFacade: RulesetFacade, private combatCalculator: CombatCalculationService) {
+    constructor(rulesetFacade: RulesetFacade) {
         const collator = new Intl.Collator('en');
 
         const defenderUnitType$ = this.defenderForm.controls.unitType.valueChanges.pipe(
@@ -53,11 +53,95 @@ export class DefenderFormComponent {
                 return terrains.sort((a, b) => collator.compare(a.name, b.name));
             })
         );
-        this.extras$ = combatCalculator.defendExtras$;
-        this.buildings$ = combatCalculator.defendBuildings$;
-        this.wonders$ = this.combatCalculator.defendWonders$;
+        const defendBonusEffects$ = rulesetFacade.ruleset$.pipe(
+            map((ruleset) => ruleset.effects.filter((effect) => effect.type === 'Defend_Bonus'))
+        );
+        this.extras$ = defendBonusEffects$.pipe(
+            map((effects) =>
+                effects
+                    .flatMap((effect) => effect.requirements)
+                    .filter(
+                        (requirement) => requirement.type === 'Extra' && requirement.range === RequirementRange.LOCAL
+                    )
+                    .map((requirement) => requirement.name)
+                    .filter((extra, index, array) => isOriginalItemIndex(extra, index, array))
+                    // eslint-disable-next-line @typescript-eslint/unbound-method -- safe, collator doesn't use this
+                    .sort(collator.compare)
+            )
+        );
+        this.buildings$ = defendBonusEffects$.pipe(
+            map((effects) =>
+                effects
+                    .flatMap((effect) => effect.requirements)
+                    .filter(
+                        (requirement) => requirement.type === 'Building' && requirement.range === RequirementRange.CITY
+                    )
+                    .map((requirement) => requirement.name)
+                    .filter((building, index, array) => isOriginalItemIndex(building, index, array))
+                    // eslint-disable-next-line @typescript-eslint/unbound-method -- safe, collator doesn't use this
+                    .sort(collator.compare)
+            )
+        );
+        this.wonders$ = defendBonusEffects$.pipe(
+            map((effects) =>
+                effects
+                    .flatMap((effect) => effect.requirements)
+                    .filter(
+                        (requirement) =>
+                            requirement.type === 'Building' && requirement.range === RequirementRange.PLAYER
+                    )
+                    .map((requirement) => requirement.name)
+                    .filter((wonder, index, array) => isOriginalItemIndex(wonder, index, array))
+                    // eslint-disable-next-line @typescript-eslint/unbound-method -- safe, collator doesn't use this
+                    .sort(collator.compare)
+            )
+        );
 
-        // TODO: emit defenderInfo on form value change
+        this.defenderForm.valueChanges.subscribe((formValue) => {
+            if (this.defenderForm.invalid) {
+                return;
+            }
+
+            const {
+                unitType,
+                veteranLevel,
+                hp,
+                terrain,
+                isInCity,
+                citySize,
+                isFortified,
+                tileExtras,
+                cityBuildings,
+                playerWonders
+            } = formValue;
+            if (
+                unitType == null ||
+                veteranLevel == null ||
+                hp == null ||
+                terrain == null ||
+                isInCity == null ||
+                citySize == null ||
+                isFortified == null ||
+                tileExtras == null ||
+                cityBuildings == null ||
+                playerWonders == null
+            ) {
+                return;
+            }
+
+            this.defenderInfo.next({
+                unitType,
+                veteranLevel,
+                hp,
+                terrain,
+                isInCity,
+                citySize,
+                isFortified,
+                extras: tileExtras,
+                buildings: cityBuildings,
+                wonders: playerWonders
+            });
+        });
     }
 
     public unitTypeSelectionChanged(): void {

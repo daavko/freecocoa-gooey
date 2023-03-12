@@ -44,17 +44,22 @@ export class AttackerFormComponent {
             })
         );
 
-        this.attackerForm.valueChanges.subscribe(() => {
+        this.attackerForm.valueChanges.subscribe((formValue) => {
             if (this.attackerForm.invalid) {
                 return;
             }
 
-            const { unitType, veteranLevel, hp, moves } = this.attackerForm.value;
+            const { unitType, veteranLevel, hp, moves } = formValue;
             if (unitType == null || veteranLevel == null || hp == null || moves == null) {
                 return;
             }
 
-            // TODO: emit attackerInfo
+            this.attackerInfo.next({
+                unitType,
+                veteranLevel,
+                hp,
+                moves
+            });
         });
     }
 

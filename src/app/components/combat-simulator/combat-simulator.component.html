@@ -1,22 +1,33 @@
 <p>Not implemented: Defense bonus from rivers (<code>combat.cpp:583-584</code>)</p>
 <p>Not implemented: "Land bombardment" logic (<code>combat.cpp:396</code>)</p>
+<p>TODO: multiple attackers vs multiple defenders</p>
+<p>
+    TODO: show remaining MP (<code>unithand.cpp:4009</code> and associated <code>utype_move_rate()</code> at
+    <code>movement.cpp:38</code>)
+</p>
 <div class="unit-info-container">
     <div>
-        <h2>Attacking unit info</h2>
-        <app-attacker-form [unitTypes]="(sortedUnitTypes$ | async) ?? []"></app-attacker-form>
-        <h2>Defending unit info</h2>
-        <app-defender-form [unitTypes]="(sortedUnitTypes$ | async) ?? []"></app-defender-form>
+        <h2>Attacking units</h2>
+        <app-attacker-form
+            [unitTypes]="(sortedUnitTypes$ | async) ?? []"
+            (attackerInfo)="updateAttacker($event)"></app-attacker-form>
+        <h2>Defending units</h2>
+        <app-defender-form
+            [unitTypes]="(sortedUnitTypes$ | async) ?? []"
+            (defenderInfo)="updateDefender($event)"></app-defender-form>
     </div>
 
     <div>
         <h2>Results</h2>
-        <ng-container *ngIf="combatResults$ | async as results">
-            <p>Attacker win chance: {{ results.attacker.winChance * 100 | number : '1.0-2' }}%</p>
-            <p>Attacker average lost hp: {{ results.attacker.averageLostHp | number : '1.0-1' }}</p>
-            <p>Attacker lost hp std error: {{ results.attacker.lostHpStdError | number : '1.0-2' }}</p>
-            <p>Defender win chance: {{ results.defender.winChance * 100 | number : '1.0-2' }}%</p>
-            <p>Defender average lost hp: {{ results.defender.averageLostHp | number : '1.0-1' }}</p>
-            <p>Defender lost hp std error: {{ results.defender.lostHpStdError | number : '1.0-2' }}</p>
+        <ng-container *ngIf="attackerResult$ | async as attackerResult">
+            <p>Attacker win chance: {{ attackerResult.winChance * 100 | number : '1.0-2' }}%</p>
+            <p>Attacker average lost hp: {{ attackerResult.averageLostHp | number : '1.0-1' }}</p>
+            <p>Attacker lost hp std error: {{ attackerResult.lostHpStdError | number : '1.0-2' }}</p>
+        </ng-container>
+        <ng-container *ngIf="defenderResult$ | async as defenderResult">
+            <p>Defender win chance: {{ defenderResult.winChance * 100 | number : '1.0-2' }}%</p>
+            <p>Defender average lost hp: {{ defenderResult.averageLostHp | number : '1.0-1' }}</p>
+            <p>Defender lost hp std error: {{ defenderResult.lostHpStdError | number : '1.0-2' }}</p>
         </ng-container>
     </div>
 </div>
