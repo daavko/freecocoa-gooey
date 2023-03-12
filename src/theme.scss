@@ -11,7 +11,8 @@ $my-theme: mat.define-dark-theme(
             primary: $my-primary,
             accent: $my-accent
         ),
-        typography: $my-typography
+        typography: $my-typography,
+        density: -1
     )
 );
 

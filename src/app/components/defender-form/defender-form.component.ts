@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { filter, map, Observable } from 'rxjs';
 import { UnitType, VeteranLevel } from 'src/app/models/ruleset.model';
@@ -10,7 +10,7 @@ import { DefenderInfo } from 'src/app/models/combat-info.model';
     styleUrls: ['./defender-form.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class DefenderFormComponent {
+export class DefenderFormComponent implements OnInit {
     @Input()
     public unitTypes: UnitType[] = [];
 
@@ -33,7 +33,9 @@ export class DefenderFormComponent {
         );
         this.availableVeteranLevels$ = defenderUnitType$.pipe(map((attacker) => attacker.veteranLevels));
         this.maxHp$ = defenderUnitType$.pipe(map((defender) => defender.hitpoints));
+    }
 
+    public ngOnInit(): void {
         this.defenderForm.valueChanges.subscribe((formValue) => {
             if (this.defenderForm.invalid) {
                 return;
@@ -51,13 +53,20 @@ export class DefenderFormComponent {
                 isFortified
             });
         });
+
+        this.defenderForm.controls.veteranLevel.disable();
+        this.defenderForm.controls.hp.disable();
+        this.defenderForm.controls.isFortified.disable();
     }
 
     public unitTypeSelectionChanged(): void {
         const currentUnitType = this.defenderForm.controls.unitType.value;
-        this.defenderForm.patchValue({
-            veteranLevel: currentUnitType?.veteranLevels[0] ?? null,
-            hp: currentUnitType?.hitpoints ?? 0
-        });
+        if (currentUnitType !== null) {
+            this.defenderForm.enable();
+            this.defenderForm.patchValue({
+                veteranLevel: currentUnitType.veteranLevels[0] ?? null,
+                hp: currentUnitType.hitpoints
+            });
+        }
     }
 }

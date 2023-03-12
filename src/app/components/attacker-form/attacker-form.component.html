@@ -1,14 +1,14 @@
-<form [formGroup]="attackerForm">
+<form [formGroup]="attackerForm" class="formutils__gaps">
     <div class="formutils__two-cols">
-        <mat-form-field>
+        <mat-form-field subscriptSizing="dynamic">
             <mat-label>Attacking unit</mat-label>
             <mat-select formControlName="unitType" (selectionChange)="unitTypeSelectionChanged()">
                 <mat-option *ngFor="let unitType of unitTypes" [value]="unitType">{{ unitType.name }}</mat-option>
             </mat-select>
         </mat-form-field>
-        <mat-form-field>
+        <mat-form-field subscriptSizing="dynamic">
             <mat-label>Veteran level</mat-label>
-            <mat-select formControlName="veteranLevel" [disabled]="attackerForm.controls.unitType.invalid">
+            <mat-select formControlName="veteranLevel">
                 <mat-option *ngFor="let level of availableVeteranLevels$ | async" [value]="level">{{
                     level.name
                 }}</mat-option>
@@ -19,29 +19,25 @@
         <p class="nomargin">Attacker HP</p>
         <mat-slider
             class="formutils__single-line__grow"
-            formControlName="hp"
-            [disabled]="attackerForm.controls.unitType.invalid"
             min="0"
             [max]="(maxHp$ | async) ?? 0"
             step="1"
             discrete
             showTickMarks>
-            <input matSliderThumb />
+            <input matSliderThumb formControlName="hp" />
         </mat-slider>
     </div>
     <div class="formutils__single-line">
         <p class="nomargin">Remaining moves</p>
         <mat-slider
             class="formutils__single-line__grow"
-            formControlName="moves"
-            [disabled]="attackerForm.controls.unitType.invalid"
             min="0"
             [max]="(moveFrags$ | async) ?? 0"
             step="1"
             discrete
             showTickMarks
             [displayWith]="formatMoves.bind(this)">
-            <input matSliderThumb />
+            <input matSliderThumb formControlName="moves" />
         </mat-slider>
     </div>
 </form>

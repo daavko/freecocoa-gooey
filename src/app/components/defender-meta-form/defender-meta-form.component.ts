@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import { RequirementRange, Terrain } from 'src/app/models/ruleset.model';
 import { RulesetFacade } from 'src/app/state/ruleset/ruleset.facade';
@@ -12,7 +12,7 @@ import { DefenderMetaInfo } from 'src/app/models/combat-info.model';
     styleUrls: ['./defender-meta-form.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class DefenderMetaFormComponent {
+export class DefenderMetaFormComponent implements OnInit {
     @Output()
     public readonly defenderMetaInfo = new EventEmitter<DefenderMetaInfo>();
 
@@ -83,6 +83,10 @@ export class DefenderMetaFormComponent {
                     .sort(collator.compare)
             )
         );
+    }
+
+    public ngOnInit(): void {
+        this.defenderMetaForm.controls.citySize.disable();
 
         this.defenderMetaForm.valueChanges.subscribe((formValue) => {
             if (this.defenderMetaForm.invalid) {
@@ -110,5 +114,13 @@ export class DefenderMetaFormComponent {
                 wonders: playerWonders
             });
         });
+    }
+
+    public isInCityChanged(value: boolean): void {
+        if (value) {
+            this.defenderMetaForm.controls.citySize.enable();
+        } else {
+            this.defenderMetaForm.controls.citySize.disable();
+        }
     }
 }
