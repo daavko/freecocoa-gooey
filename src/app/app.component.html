@@ -21,8 +21,9 @@
     <div class="content-container" [ngSwitch]="screen$ | async">
         <app-ruleset-picker *ngSwitchCase="'rulesetPick'"></app-ruleset-picker>
         <app-tool-picker *ngSwitchCase="'toolPick'"></app-tool-picker>
-        <app-combat-simulator *ngSwitchCase="'combatForm'"></app-combat-simulator>
-        <app-bribe-cost-calculator *ngSwitchCase="'bribeCostForm'"></app-bribe-cost-calculator>
-        <app-incite-cost-calculator *ngSwitchCase="'inciteCostForm'"></app-incite-cost-calculator>
+        <app-combat-simulator *ngSwitchCase="'combatSim'"></app-combat-simulator>
+        <app-battle-simulator *ngSwitchCase="'battleSim'"></app-battle-simulator>
+        <app-bribe-cost-calculator *ngSwitchCase="'bribeCostCalc'"></app-bribe-cost-calculator>
+        <app-incite-cost-calculator *ngSwitchCase="'inciteCostCalc'"></app-incite-cost-calculator>
     </div>
 </div>
