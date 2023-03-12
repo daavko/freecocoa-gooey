@@ -21,7 +21,7 @@
     <mat-form-field class="fullwidth" subscriptSizing="dynamic">
         <mat-label>Tile extras</mat-label>
         <mat-select multiple formControlName="tileExtras">
-            <mat-option *ngFor="let extra of extras$ | async" [value]="extra">{{ extra }}</mat-option>
+            <mat-option *ngFor="let extra of extras$ | async" [value]="extra">{{ extra.name }}</mat-option>
         </mat-select>
     </mat-form-field>
     <mat-form-field class="fullwidth" subscriptSizing="dynamic">

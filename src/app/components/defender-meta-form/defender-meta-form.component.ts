@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, OnInit, Output } from '@angular/core';
-import { map, Observable } from 'rxjs';
-import { RequirementRange, Terrain } from 'src/app/models/ruleset.model';
+import { combineLatest, map, Observable } from 'rxjs';
+import { RequirementRange, Terrain, TerrainExtra } from 'src/app/models/ruleset.model';
 import { RulesetFacade } from 'src/app/state/ruleset/ruleset.facade';
 import { isOriginalItemIndex } from 'src/app/utils/array-utils';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
@@ -20,13 +20,13 @@ export class DefenderMetaFormComponent implements OnInit {
         terrain: new FormControl<Terrain | null>(null, [Validators.required]),
         isInCity: new FormControl<boolean>(false),
         citySize: new FormControl<number>(1, [Validators.required]),
-        tileExtras: new FormControl<string[]>([]),
+        tileExtras: new FormControl<TerrainExtra[]>([]),
         cityBuildings: new FormControl<string[]>([]),
         playerWonders: new FormControl<string[]>([])
     });
 
     public readonly terrains$: Observable<Terrain[]>;
-    public readonly extras$: Observable<string[]>;
+    public readonly extras$: Observable<TerrainExtra[]>;
     public readonly buildings$: Observable<string[]>;
     public readonly wonders$: Observable<string[]>;
 
@@ -35,7 +35,7 @@ export class DefenderMetaFormComponent implements OnInit {
 
         this.terrains$ = rulesetFacade.ruleset$.pipe(
             map((ruleset) => {
-                const terrains = [...ruleset.terrainTypes];
+                const terrains: Terrain[] = [...ruleset.terrainTypes];
                 return terrains.sort((a, b) => collator.compare(a.name, b.name));
             })
         );
@@ -43,18 +43,20 @@ export class DefenderMetaFormComponent implements OnInit {
         const defendBonusEffects$ = rulesetFacade.ruleset$.pipe(
             map((ruleset) => ruleset.effects.filter((effect) => effect.type === 'Defend_Bonus'))
         );
-        this.extras$ = defendBonusEffects$.pipe(
-            map((effects) =>
-                effects
+        this.extras$ = combineLatest([rulesetFacade.ruleset$, defendBonusEffects$]).pipe(
+            map(([ruleset, effects]) => {
+                const extras: TerrainExtra[] = [...ruleset.terrainExtras];
+                const effectExtraNames = effects
                     .flatMap((effect) => effect.requirements)
                     .filter(
                         (requirement) => requirement.type === 'Extra' && requirement.range === RequirementRange.LOCAL
                     )
                     .map((requirement) => requirement.name)
-                    .filter((extra, index, array) => isOriginalItemIndex(extra, index, array))
-                    // eslint-disable-next-line @typescript-eslint/unbound-method -- safe, collator doesn't use this
-                    .sort(collator.compare)
-            )
+                    .filter((extra, index, array) => isOriginalItemIndex(extra, index, array));
+                return extras
+                    .filter((extra) => extra.defenseBonus > 0 || effectExtraNames.includes(extra.name))
+                    .sort((a, b) => collator.compare(a.name, b.name));
+            })
         );
         this.buildings$ = defendBonusEffects$.pipe(
             map((effects) =>

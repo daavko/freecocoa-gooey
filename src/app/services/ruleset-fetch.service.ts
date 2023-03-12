@@ -8,6 +8,7 @@ import {
     RequirementRange,
     Ruleset,
     Terrain,
+    TerrainExtra,
     UnitClass,
     UnitType,
     UnitTypeBonus,
@@ -54,7 +55,7 @@ export class RulesetFetchService {
                 const effectsFile = this.parseFile(effects);
 
                 const [unitClasses, unitTypes, defaultVeteranLevels] = this.extractUnitsFile(unitsFile);
-                const [terrainTypes, moveFrags] = this.extractTerrainFile(terrainFile);
+                const [terrainTypes, terrainExtras, moveFrags] = this.extractTerrainFile(terrainFile);
                 const effectsList = this.extractEffectsFile(effectsFile);
                 return {
                     effects: effectsList,
@@ -62,6 +63,7 @@ export class RulesetFetchService {
                     unitClasses,
                     defaultVeteranLevels,
                     terrainTypes,
+                    terrainExtras,
                     moveFrags
                 };
             })
@@ -275,24 +277,58 @@ export class RulesetFetchService {
         return [unitClasses, unitTypes, vetLevels];
     }
 
-    private extractTerrainFile(file: IniFile): [Terrain[], number] {
+    private extractTerrainFile(file: IniFile): [Terrain[], TerrainExtra[], number] {
+        const terrainIdPrefix = 'terrain_';
         const terrains: Terrain[] = file.sections
-            .filter((section) => section.name.startsWith('terrain_'))
+            .filter((section) => section.name.startsWith(terrainIdPrefix))
             .map((section) => {
                 const nameEntry = findGuaranteedEntry(section, 'name');
                 const defenseBonusEntry = findGuaranteedEntry(section, 'defense_bonus');
 
+                const nativeToEntry = findPossibleEntry(section, 'native_to');
+                let nativeUnitClasses: string[] = [];
+                if (nativeToEntry !== undefined) {
+                    nativeUnitClasses = entryValueAsValueList(nativeToEntry).map((value) => rawValueAsString(value));
+                }
+
                 return {
-                    id: section.name.substring(8),
-                    name: entryValueAsString(nameEntry),
-                    defenseBonus: entryValueAsNumber(defenseBonusEntry)
+                    id: section.name.substring(terrainIdPrefix.length),
+                    name: this.cleanTranslatableName(entryValueAsString(nameEntry)),
+                    defenseBonus: entryValueAsNumber(defenseBonusEntry),
+                    nativeUnitClasses
+                };
+            });
+
+        const terrainExtraIdPrefix = 'extra_';
+        const terrainExtras: TerrainExtra[] = file.sections
+            .filter((section) => section.name.startsWith(terrainExtraIdPrefix))
+            .map((section) => {
+                const nameEntry = findGuaranteedEntry(section, 'name');
+
+                const defenseBonusEntry = findPossibleEntry(section, 'defense_bonus');
+                let defenseBonus = 0;
+                if (defenseBonusEntry !== undefined) {
+                    defenseBonus = entryValueAsNumber(defenseBonusEntry);
+                }
+
+                const nativeToEntry = findPossibleEntry(section, 'native_to');
+                let nativeUnitClasses: string[] = [];
+                if (nativeToEntry !== undefined) {
+                    nativeUnitClasses = entryValueAsValueList(nativeToEntry).map((value) => rawValueAsString(value));
+                }
+
+                return {
+                    id: section.name.substring(terrainExtraIdPrefix.length),
+                    name: this.cleanTranslatableName(entryValueAsString(nameEntry)),
+                    defenseBonus,
+                    nativeUnitClasses
                 };
             });
 
         const paramsSection = findGuaranteedSection(file, 'parameters');
         const moveFragsEntry = findGuaranteedEntry(paramsSection, 'move_fragments');
 
-        return [terrains, entryValueAsNumber(moveFragsEntry)];
+        return [terrains, terrainExtras, entryValueAsNumber(moveFragsEntry)];
     }
 
     private cleanTranslatableName(name: string): string {

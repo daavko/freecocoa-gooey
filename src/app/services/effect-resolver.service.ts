@@ -45,7 +45,8 @@ export class EffectResolverService {
                         break;
                     case 'Extra':
                         roundPassed =
-                            req.range === RequirementRange.LOCAL && defenderMeta.extras.includes(req.name)
+                            req.range === RequirementRange.LOCAL &&
+                            defenderMeta.extras.some((extra) => extra.name === req.name)
                                 ? req.present
                                 : !req.present;
                         break;
