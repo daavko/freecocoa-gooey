@@ -152,7 +152,17 @@ export class CombatCalculationService {
             defenderFirepower = 1;
         }
 
-        // todo: land bombardment - combat.cpp:396
+        if (
+            this.isLandBombardment(
+                attUnitType.class,
+                world.defenderMeta.terrain,
+                world.defenderMeta.extras,
+                world.defenderMeta.isInCity
+            )
+        ) {
+            attackerFirepower = 1;
+            defenderFirepower = 1;
+        }
 
         return [attackerFirepower, defenderFirepower];
     }
@@ -267,6 +277,39 @@ export class CombatCalculationService {
             }
         }
         return total;
+    }
+
+    private isLandBombardment(
+        attackerClassName: string,
+        defenderTerrain: Terrain,
+        defenderExtras: TerrainExtra[],
+        defenderIsInCity: boolean
+    ): boolean {
+        /*
+        simplified, doesn't check for things like "is this native tile surrounded by non-native tiles" and things like
+        that
+
+        technically this also recognizes things like "Cannon vs Caravel on Ocean" as "land bombardment", but original
+        code also behaves like this; I guess it's just "is this unit attacking onto non-native terrain?"
+         */
+
+        if (defenderTerrain.nativeUnitClasses.includes(attackerClassName)) {
+            return false;
+        }
+
+        if (
+            defenderExtras.some(
+                (extra) => extra.flags.includes('NativeTile') && extra.nativeUnitClasses.includes(attackerClassName)
+            )
+        ) {
+            return false;
+        }
+
+        if (defenderIsInCity) {
+            return false;
+        }
+
+        return true;
     }
 
     private avgLostHpFromHpChances(hpResults: [number, number][]): [number, number] {
