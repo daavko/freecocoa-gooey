@@ -45,14 +45,20 @@
             <ng-container
                 *ngIf="(attackerResult$ | async) !== null && (defenderResult$ | async) !== null; else emptyResults">
                 <ng-container *ngIf="attackerResult$ | async as attackerResult">
-                    <p>Attacker win chance: {{ attackerResult.winChance * 100 | number : '1.0-2' }}%</p>
-                    <p>Attacker average lost hp: {{ attackerResult.averageLostHp | number : '1.0-1' }}</p>
-                    <p>Attacker lost hp std error: {{ attackerResult.lostHpStdError | number : '1.0-2' }}</p>
+                    <p>Attacker win chance: {{ attackerResult.winChance * 100 | number : '1.2-2' }}%</p>
+                    <p *ngFor="let hpResult of attackerResult.hpChances">
+                        Attacker hp left possibility: {{ hpResult[0] }} - {{ hpResult[1] * 100 | number : '1.2-2' }}%
+                    </p>
+                    <p>Attacker average lost hp: {{ attackerResult.averageLostHp | number : '1.1-1' }}</p>
+                    <p>Attacker lost hp std error: {{ attackerResult.lostHpStdError | number : '1.2-2' }}</p>
                 </ng-container>
                 <ng-container *ngIf="defenderResult$ | async as defenderResult">
-                    <p>Defender win chance: {{ defenderResult.winChance * 100 | number : '1.0-2' }}%</p>
-                    <p>Defender average lost hp: {{ defenderResult.averageLostHp | number : '1.0-1' }}</p>
-                    <p>Defender lost hp std error: {{ defenderResult.lostHpStdError | number : '1.0-2' }}</p>
+                    <p>Defender win chance: {{ defenderResult.winChance * 100 | number : '1.2-2' }}%</p>
+                    <p *ngFor="let hpResult of defenderResult.hpChances">
+                        Defender hp left possibility: {{ hpResult[0] }} - {{ hpResult[1] * 100 | number : '1.2-2' }}%
+                    </p>
+                    <p>Defender average lost hp: {{ defenderResult.averageLostHp | number : '1.1-1' }}</p>
+                    <p>Defender lost hp std error: {{ defenderResult.lostHpStdError | number : '1.2-2' }}</p>
                 </ng-container>
             </ng-container>
             <ng-template #emptyResults>

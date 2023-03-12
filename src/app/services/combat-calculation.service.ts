@@ -117,6 +117,9 @@ export class CombatCalculationService {
         attackerCombatResult.averageLostHp = attackerAvgLostHp;
         attackerCombatResult.lostHpStdError = attackerLostHpStdErr;
 
+        attackerCombatResult.hpChances.push([0, defenderWinChance]);
+        defenderCombatResult.hpChances.push([0, attackerWinChance]);
+
         return [attackerCombatResult, defenderCombatResult];
     }
 

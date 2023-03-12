@@ -86,8 +86,6 @@ export class DefenderMetaFormComponent implements OnInit {
     }
 
     public ngOnInit(): void {
-        this.defenderMetaForm.controls.citySize.disable();
-
         this.defenderMetaForm.valueChanges.subscribe((formValue) => {
             if (this.defenderMetaForm.invalid) {
                 return;
@@ -114,13 +112,5 @@ export class DefenderMetaFormComponent implements OnInit {
                 wonders: playerWonders
             });
         });
-    }
-
-    public isInCityChanged(value: boolean): void {
-        if (value) {
-            this.defenderMetaForm.controls.citySize.enable();
-        } else {
-            this.defenderMetaForm.controls.citySize.disable();
-        }
     }
 }
