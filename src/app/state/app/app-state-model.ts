@@ -1,9 +1,10 @@
-export type AppScreen = 'rulesetPick' | 'toolPick' | 'combatForm' | 'bribeCostForm' | 'inciteCostForm';
+export type AppScreen = 'rulesetPick' | 'toolPick' | 'combatSim' | 'battleSim' | 'bribeCostCalc' | 'inciteCostCalc';
 
 export const TOOLBAR_TITLE_MAP: Record<AppScreen, string> = {
     rulesetPick: 'Choose a ruleset',
     toolPick: 'Choose a tool',
-    combatForm: 'Combat simulator',
-    bribeCostForm: 'Bribe cost calculator',
-    inciteCostForm: 'Incite cost calculator'
+    combatSim: 'Combat simulator',
+    battleSim: 'Battle simulator',
+    bribeCostCalc: 'Bribe cost calculator',
+    inciteCostCalc: 'Incite cost calculator'
 };

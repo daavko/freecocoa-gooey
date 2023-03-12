@@ -31,6 +31,7 @@ import { DefenderFormComponent } from './components/combat-simulator/defender-fo
 import { CombatSimulatorComponent } from './components/combat-simulator/combat-simulator.component';
 import { BribeCostCalculatorComponent } from './components/bribe-cost-calculator/bribe-cost-calculator.component';
 import { InciteCostCalculatorComponent } from './components/incite-cost-calculator/incite-cost-calculator.component';
+import { BattleSimulatorComponent } from './components/battle-simulator/battle-simulator.component';
 
 // misc
 import { environment } from 'src/environments/environment';
@@ -48,7 +49,8 @@ import { appStateAppImports } from 'src/app/state/app/public-api';
         CombatSimulatorComponent,
         ToolPickerComponent,
         BribeCostCalculatorComponent,
-        InciteCostCalculatorComponent
+        InciteCostCalculatorComponent,
+        BattleSimulatorComponent
     ],
     imports: [
         BrowserModule,
