@@ -20,3 +20,35 @@ a {
 
 @include mat.core();
 @include mat.all-component-themes(theme.$my-theme);
+
+.formutils {
+    &__two-cols {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 16px;
+        align-items: center;
+    }
+
+    &__single-line {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+
+        &__grow {
+            flex-grow: 1;
+        }
+    }
+}
+
+.fullwidth {
+    width: 100%;
+}
+
+.nomargin {
+    margin: 0 !important; // !important required to override mat-typography styles
+}
+
+.mat-form-field-height-compensation {
+    margin: 0.25em 0;
+    padding-bottom: 1.34375em;
+}

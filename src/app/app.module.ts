@@ -26,12 +26,17 @@ import { StoreDevtoolsModule } from '@ngrx/store-devtools';
 import { AppComponent } from './app.component';
 import { RulesetPickerComponent } from './components/ruleset-picker/ruleset-picker.component';
 import { ToolPickerComponent } from 'src/app/components/tool-picker/tool-picker.component';
-import { AttackerFormComponent } from './components/combat-simulator/attacker-form/attacker-form.component';
-import { DefenderFormComponent } from './components/combat-simulator/defender-form/defender-form.component';
+import { AttackerFormComponent } from './components/attacker-form/attacker-form.component';
+import { DefenderFormComponent } from './components/defender-form/defender-form.component';
 import { CombatSimulatorComponent } from './components/combat-simulator/combat-simulator.component';
 import { BribeCostCalculatorComponent } from './components/bribe-cost-calculator/bribe-cost-calculator.component';
 import { InciteCostCalculatorComponent } from './components/incite-cost-calculator/incite-cost-calculator.component';
 import { BattleSimulatorComponent } from './components/battle-simulator/battle-simulator.component';
+import { DefenderMetaFormComponent } from './components/defender-meta-form/defender-meta-form.component';
+
+// modals
+import { AttackerInfoModalComponent } from './modals/attacker-info-modal/attacker-info-modal.component';
+import { DefenderInfoModalComponent } from './modals/defender-info-modal/defender-info-modal.component';
 
 // misc
 import { environment } from 'src/environments/environment';
@@ -50,7 +55,10 @@ import { appStateAppImports } from 'src/app/state/app/public-api';
         ToolPickerComponent,
         BribeCostCalculatorComponent,
         InciteCostCalculatorComponent,
-        BattleSimulatorComponent
+        BattleSimulatorComponent,
+        AttackerInfoModalComponent,
+        DefenderInfoModalComponent,
+        DefenderMetaFormComponent
     ],
     imports: [
         BrowserModule,

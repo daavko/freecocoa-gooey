@@ -4,6 +4,13 @@
 
 .unit-info-container {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+    align-items: start;
+}
+
+.vertical-gapped {
+    display: flex;
+    flex-direction: column;
     gap: 16px;
 }

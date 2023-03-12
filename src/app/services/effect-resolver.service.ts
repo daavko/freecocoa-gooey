@@ -9,7 +9,7 @@ import { getUnitClassByName } from 'src/app/utils/ruleset-utils';
 export class EffectResolverService {
     public resolveDefenseEffects(attacker: UnitType, ruleset: Ruleset, world: WorldState): number {
         const effects = ruleset.effects.filter((effect) => effect.type === 'Defend_Bonus');
-        const defenderInfo = world.defender;
+        const defenderMeta = world.defenderMeta;
 
         let tally = 0;
         for (const effect of effects) {
@@ -20,11 +20,11 @@ export class EffectResolverService {
                     case 'Building':
                         if (req.range === RequirementRange.CITY) {
                             roundPassed =
-                                defenderInfo.isInCity && defenderInfo.buildings.includes(req.name)
+                                defenderMeta.isInCity && defenderMeta.buildings.includes(req.name)
                                     ? req.present
                                     : !req.present;
                         } else if (req.range === RequirementRange.PLAYER) {
-                            roundPassed = defenderInfo.wonders.includes(req.name) ? req.present : !req.present;
+                            roundPassed = defenderMeta.wonders.includes(req.name) ? req.present : !req.present;
                         } else {
                             // can't handle
                             applies = false;
@@ -33,19 +33,19 @@ export class EffectResolverService {
                         break;
                     case 'CityTile':
                         roundPassed =
-                            req.range === RequirementRange.LOCAL && defenderInfo.isInCity ? req.present : !req.present;
+                            req.range === RequirementRange.LOCAL && defenderMeta.isInCity ? req.present : !req.present;
                         break;
                     case 'MinSize':
                         roundPassed =
                             req.range === RequirementRange.CITY &&
-                            defenderInfo.isInCity &&
-                            defenderInfo.citySize >= Number.parseInt(req.name)
+                            defenderMeta.isInCity &&
+                            defenderMeta.citySize >= Number.parseInt(req.name)
                                 ? req.present
                                 : !req.present;
                         break;
                     case 'Extra':
                         roundPassed =
-                            req.range === RequirementRange.LOCAL && defenderInfo.extras.includes(req.name)
+                            req.range === RequirementRange.LOCAL && defenderMeta.extras.includes(req.name)
                                 ? req.present
                                 : !req.present;
                         break;
@@ -77,6 +77,7 @@ export class EffectResolverService {
         const effects = ruleset.effects.filter((effect) => effect.type === 'Fortify_Defense_Bonus');
         const defenderClass = getUnitClassByName(ruleset, defender.class);
         const defenderInfo = world.defender;
+        const defenderMeta = world.defenderMeta;
 
         let tally = 0;
         for (const effect of effects) {
@@ -86,7 +87,7 @@ export class EffectResolverService {
                 switch (req.type) {
                     case 'CityTile':
                         roundPassed =
-                            req.range === RequirementRange.LOCAL && defenderInfo.isInCity ? req.present : !req.present;
+                            req.range === RequirementRange.LOCAL && defenderMeta.isInCity ? req.present : !req.present;
                         break;
                     case 'Activity':
                         roundPassed =

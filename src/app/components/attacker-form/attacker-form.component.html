@@ -1,5 +1,5 @@
 <form [formGroup]="attackerForm">
-    <div class="flex">
+    <div class="formutils__two-cols">
         <mat-form-field>
             <mat-label>Attacking unit</mat-label>
             <mat-select formControlName="unitType" (selectionChange)="unitTypeSelectionChanged()">
@@ -15,10 +15,10 @@
             </mat-select>
         </mat-form-field>
     </div>
-    <div class="flex flex-align-center">
+    <div class="formutils__single-line">
         <p class="nomargin">Attacker HP</p>
         <mat-slider
-            class="flex-grow"
+            class="formutils__single-line__grow"
             formControlName="hp"
             [disabled]="attackerForm.controls.unitType.invalid"
             min="0"
@@ -27,10 +27,10 @@
             thumbLabel
             tickInterval="1"></mat-slider>
     </div>
-    <div class="flex flex-align-center">
+    <div class="formutils__single-line">
         <p class="nomargin">Remaining moves</p>
         <mat-slider
-            class="flex-grow"
+            class="formutils__single-line__grow"
             formControlName="moves"
             [disabled]="attackerForm.controls.unitType.invalid"
             min="0"

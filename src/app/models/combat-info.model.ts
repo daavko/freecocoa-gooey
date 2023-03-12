@@ -3,6 +3,7 @@ import { Terrain, UnitType, VeteranLevel } from 'src/app/models/ruleset.model';
 export interface WorldState {
     attacker: AttackerInfo;
     defender: DefenderInfo;
+    defenderMeta: DefenderMetaInfo;
 }
 
 export interface AttackerInfo {
@@ -16,10 +17,13 @@ export interface DefenderInfo {
     unitType: UnitType;
     veteranLevel: VeteranLevel;
     hp: number;
+    isFortified: boolean;
+}
+
+export interface DefenderMetaInfo {
     terrain: Terrain;
     isInCity: boolean;
     citySize: number;
-    isFortified: boolean;
     extras: string[];
     buildings: string[];
     wonders: string[];

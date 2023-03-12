@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { DefenderMetaInfo } from 'src/app/models/combat-info.model';
 
 @Component({
     selector: 'app-battle-simulator',
@@ -6,4 +7,8 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
     styleUrls: ['./battle-simulator.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class BattleSimulatorComponent {}
+export class BattleSimulatorComponent {
+    public updateDefenderMeta(defenderMeta: DefenderMetaInfo): void {
+        //this.defenderMetaInfo.next(defenderMeta);
+    }
+}
