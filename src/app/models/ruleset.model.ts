@@ -90,4 +90,5 @@ export interface TerrainExtra {
     name: string;
     defenseBonus: number;
     nativeUnitClasses: string[];
+    flags: string[];
 }
