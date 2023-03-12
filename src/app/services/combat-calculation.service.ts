@@ -75,7 +75,7 @@ export class CombatCalculationService {
         for (let i = 0; i <= defenderMaximumLoseRounds; i++) {
             // defender win
             const roundProbability =
-                binomialProbabilityMass(defenderMaximumLoseRounds + i, i, attackerRoundWinChance) *
+                binomialProbabilityMass(attackerMaximumLoseRounds + i, i, attackerRoundWinChance) *
                 defenderRoundWinChance;
             const defenderHpLeft = world.defender.hp - i * attackerFp;
             defenderCombatResult.hpChances.push([defenderHpLeft, roundProbability]);
@@ -83,11 +83,12 @@ export class CombatCalculationService {
         for (let i = 0; i <= attackerMaximumLoseRounds; i++) {
             // attacker win
             const roundProbability =
-                binomialProbabilityMass(attackerMaximumLoseRounds + i, i, defenderRoundWinChance) *
+                binomialProbabilityMass(defenderMaximumLoseRounds + i, i, defenderRoundWinChance) *
                 attackerRoundWinChance;
             const attackerHpLeft = world.attacker.hp - i * defenderFp;
             attackerCombatResult.hpChances.push([attackerHpLeft, roundProbability]);
         }
+
         const defenderWinChance = binomialProbabilityCumulative(
             attackerRequiredWinRounds + defenderRequiredWinRounds - 1,
             defenderMaximumLoseRounds,
@@ -227,7 +228,7 @@ export class CombatCalculationService {
         let attackerFirepower = attUnitType.firepower;
         let defenderFirepower = defUnitType.firepower;
 
-        if (attUnitType.flags.includes('CityBuster') && world.defender.isInCity) {
+        if (attUnitType.flags.includes('CityBuster') && world.defenderMeta.isInCity) {
             attackerFirepower *= 2;
         }
 
@@ -236,7 +237,7 @@ export class CombatCalculationService {
             attackerFirepower = 1;
         }
 
-        if (defUnitType.flags.includes('BadCityDefender') && world.defender.isInCity) {
+        if (defUnitType.flags.includes('BadCityDefender') && world.defenderMeta.isInCity) {
             attackerFirepower *= 2;
             defenderFirepower = 1;
         }
@@ -272,7 +273,7 @@ export class CombatCalculationService {
     ): number {
         // combined with do_defense_multiplication, it's easier that way
 
-        const defTile = world.defender.terrain;
+        const defTile = world.defenderMeta.terrain;
         const defUnitClass = getUnitClassByName(ruleset, defUnitType.class);
 
         let defensePower = this.getDefensePower(defUnitType, defUnitClass, defTile, world.defender.veteranLevel);

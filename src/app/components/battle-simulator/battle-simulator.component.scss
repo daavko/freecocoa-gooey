@@ -1,0 +1,21 @@
+:host {
+    display: block;
+}
+
+.battle-info {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+}
+
+.unit-group-actions {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+}
+
+.vertical-gapped {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
