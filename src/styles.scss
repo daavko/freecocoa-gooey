@@ -20,6 +20,7 @@ a {
 
 @include mat.core();
 @include mat.all-component-themes(theme.$my-theme);
+@include mat.typography-hierarchy(theme.$my-typography);
 
 .formutils {
     &__two-cols {

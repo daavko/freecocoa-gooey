@@ -6,7 +6,9 @@
 </p>
 <div class="unit-info-container">
     <mat-card>
-        <mat-card-title>Attacking unit</mat-card-title>
+        <mat-card-header>
+            <mat-card-title><h2>Attacking unit</h2></mat-card-title>
+        </mat-card-header>
         <mat-card-content>
             <app-attacker-form
                 [unitTypes]="(sortedUnitTypes$ | async) ?? []"
@@ -16,7 +18,9 @@
 
     <div class="vertical-gapped">
         <mat-card>
-            <mat-card-title>Defending unit</mat-card-title>
+            <mat-card-header>
+                <mat-card-title><h2>Defending unit</h2></mat-card-title>
+            </mat-card-header>
             <mat-card-content>
                 <app-defender-form
                     [unitTypes]="(sortedUnitTypes$ | async) ?? []"
@@ -24,7 +28,9 @@
             </mat-card-content>
         </mat-card>
         <mat-card>
-            <mat-card-title>Defender meta info</mat-card-title>
+            <mat-card-header>
+                <mat-card-title><h2>Defender meta info</h2></mat-card-title>
+            </mat-card-header>
             <mat-card-content>
                 <app-defender-meta-form (defenderMetaInfo)="updateDefenderMeta($event)"></app-defender-meta-form>
             </mat-card-content>
@@ -32,7 +38,9 @@
     </div>
 
     <mat-card>
-        <mat-card-title>Results</mat-card-title>
+        <mat-card-header>
+            <mat-card-title><h2>Results</h2></mat-card-title>
+        </mat-card-header>
         <mat-card-content>
             <ng-container
                 *ngIf="(attackerResult$ | async) !== null && (defenderResult$ | async) !== null; else emptyResults">
