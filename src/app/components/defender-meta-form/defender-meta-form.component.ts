@@ -54,7 +54,12 @@ export class DefenderMetaFormComponent implements OnInit {
                     .map((requirement) => requirement.name)
                     .filter((extra, index, array) => isOriginalItemIndex(extra, index, array));
                 return extras
-                    .filter((extra) => extra.defenseBonus > 0 || effectExtraNames.includes(extra.name))
+                    .filter(
+                        (extra) =>
+                            extra.defenseBonus > 0 ||
+                            (extra.flags.includes('NativeTile') && extra.nativeUnitClasses.length > 0) ||
+                            effectExtraNames.includes(extra.name)
+                    )
                     .sort((a, b) => collator.compare(a.name, b.name));
             })
         );
