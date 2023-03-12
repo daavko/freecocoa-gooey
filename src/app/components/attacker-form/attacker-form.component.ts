@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { filter, map, Observable, tap } from 'rxjs';
 import { UnitType, VeteranLevel } from 'src/app/models/ruleset.model';
@@ -11,7 +11,7 @@ import { RulesetFacade } from 'src/app/state/ruleset/public-api';
     styleUrls: ['./attacker-form.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class AttackerFormComponent {
+export class AttackerFormComponent implements OnInit {
     @Input()
     public unitTypes: UnitType[] = [];
 
@@ -43,7 +43,9 @@ export class AttackerFormComponent {
                 this.lastKnownMoveFrags = moveFrags;
             })
         );
+    }
 
+    public ngOnInit(): void {
         this.attackerForm.valueChanges.subscribe((formValue) => {
             if (this.attackerForm.invalid) {
                 return;
@@ -61,6 +63,10 @@ export class AttackerFormComponent {
                 moves
             });
         });
+
+        this.attackerForm.controls.veteranLevel.disable();
+        this.attackerForm.controls.hp.disable();
+        this.attackerForm.controls.moves.disable();
     }
 
     public formatMoves(value: number): string {
@@ -69,10 +75,13 @@ export class AttackerFormComponent {
 
     public unitTypeSelectionChanged(): void {
         const currentUnitType = this.attackerForm.controls.unitType.value;
-        this.attackerForm.patchValue({
-            veteranLevel: currentUnitType?.veteranLevels[0] ?? null,
-            hp: currentUnitType?.hitpoints ?? 0,
-            moves: this.lastKnownMoveFrags
-        });
+        if (currentUnitType !== null) {
+            this.attackerForm.enable();
+            this.attackerForm.patchValue({
+                veteranLevel: currentUnitType.veteranLevels[0] ?? null,
+                hp: currentUnitType.hitpoints,
+                moves: this.lastKnownMoveFrags
+            });
+        }
     }
 }

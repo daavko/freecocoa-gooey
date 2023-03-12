@@ -1,14 +1,14 @@
-<form [formGroup]="defenderForm">
+<form [formGroup]="defenderForm" class="formutils__gaps">
     <div class="formutils__two-cols">
-        <mat-form-field>
+        <mat-form-field subscriptSizing="dynamic">
             <mat-label>Defending unit</mat-label>
             <mat-select formControlName="unitType" (selectionChange)="unitTypeSelectionChanged()">
                 <mat-option *ngFor="let unitType of unitTypes" [value]="unitType">{{ unitType.name }}</mat-option>
             </mat-select>
         </mat-form-field>
-        <mat-form-field>
+        <mat-form-field subscriptSizing="dynamic">
             <mat-label>Veteran level</mat-label>
-            <mat-select formControlName="veteranLevel" [disabled]="defenderForm.controls.unitType.invalid">
+            <mat-select formControlName="veteranLevel">
                 <mat-option *ngFor="let level of availableVeteranLevels$ | async" [value]="level">{{
                     level.name
                 }}</mat-option>
@@ -19,14 +19,12 @@
         <p class="nomargin">Defender HP</p>
         <mat-slider
             class="formutils__single-line__grow"
-            formControlName="hp"
-            [disabled]="defenderForm.controls.unitType.invalid"
             min="0"
             [max]="(maxHp$ | async) ?? 0"
             step="1"
             discrete
             showTickMarks>
-            <input matSliderThumb value="0" />
+            <input matSliderThumb value="0" formControlName="hp" />
         </mat-slider>
     </div>
     <mat-checkbox formControlName="isFortified">Fortified</mat-checkbox>

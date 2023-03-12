@@ -23,6 +23,12 @@ a {
 @include mat.typography-hierarchy(theme.$my-typography);
 
 .formutils {
+    &__gaps {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
     &__two-cols {
         display: grid;
         grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
