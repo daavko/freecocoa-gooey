@@ -40,3 +40,10 @@ export interface UnitCombatResultStatistics {
     averageLostHp: number;
     lostHpStdError: number;
 }
+
+export interface CombatResult {
+    winChance: number;
+    hpChances: [number, number][];
+    averageLostHp: number;
+    lostHpStdError: number;
+}

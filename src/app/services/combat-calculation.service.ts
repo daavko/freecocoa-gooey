@@ -1,115 +1,24 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, combineLatest, filter, map, Observable } from 'rxjs';
-import {
-    RequirementRange,
-    Ruleset,
-    Terrain,
-    UnitClass,
-    UnitType,
-    UnitTypeBonus,
-    VeteranLevel
-} from 'src/app/models/ruleset.model';
-import {
-    AttackerInfo,
-    CombatResultStatistics,
-    CombatRoundResult,
-    DefenderInfo,
-    WorldState
-} from 'src/app/models/combat-info.model';
+import { BehaviorSubject } from 'rxjs';
+import { Ruleset, Terrain, UnitClass, UnitType, UnitTypeBonus, VeteranLevel } from 'src/app/models/ruleset.model';
+import { CombatResult, CombatResultStatistics, CombatRoundResult, WorldState } from 'src/app/models/combat-info.model';
 import { EffectResolverService } from 'src/app/services/effect-resolver.service';
 import { getUnitClassByName } from 'src/app/utils/ruleset-utils';
-import { randomInt } from 'src/app/utils/number-utils';
+import { binomialProbabilityCumulative, binomialProbabilityMass, randomInt } from 'src/app/utils/number-utils';
 
 // I don't know why this exists, but it does
 const POWER_FACTOR = 10;
-
-interface CombatResult {
-    winChance: number;
-    hpChances: [number, number][];
-    averageLostHp: number;
-    lostHpStdError: number;
-}
 
 @Injectable({
     providedIn: 'root'
 })
 export class CombatCalculationService {
-    private readonly collator = new Intl.Collator('en');
     private readonly ruleset = new BehaviorSubject<Ruleset | null>(null);
-    private readonly attackerInfo = new BehaviorSubject<AttackerInfo | null>(null);
-    private readonly defenderInfo = new BehaviorSubject<DefenderInfo | null>(null);
-
-    public readonly ruleset$ = this.ruleset.asObservable().pipe(filter((value): value is Ruleset => value !== null));
-    public readonly defendEffects$ = this.ruleset$.pipe(
-        map((ruleset) => ruleset.effects.filter((effect) => effect.type === 'Defend_Bonus'))
-    );
-    public readonly defendExtras$ = this.defendEffects$.pipe(
-        map((effects) =>
-            effects
-                .flatMap((effect) => effect.requirements)
-                .filter((requirement) => requirement.type === 'Extra' && requirement.range === RequirementRange.LOCAL)
-                .map((requirement) => requirement.name)
-                .filter((building, index, array) => array.indexOf(building) === index)
-                // eslint-disable-next-line @typescript-eslint/unbound-method -- safe, collator doesn't use this
-                .sort(this.collator.compare)
-        )
-    );
-    public readonly defendBuildings$ = this.defendEffects$.pipe(
-        map((effects) =>
-            effects
-                .flatMap((effect) => effect.requirements)
-                .filter((requirement) => requirement.type === 'Building' && requirement.range === RequirementRange.CITY)
-                .map((requirement) => requirement.name)
-                .filter((building, index, array) => array.indexOf(building) === index)
-                // eslint-disable-next-line @typescript-eslint/unbound-method -- safe, collator doesn't use this
-                .sort(this.collator.compare)
-        )
-    );
-    public readonly defendWonders$ = this.defendEffects$.pipe(
-        map((effects) =>
-            effects
-                .flatMap((effect) => effect.requirements)
-                .filter(
-                    (requirement) => requirement.type === 'Building' && requirement.range === RequirementRange.PLAYER
-                )
-                .map((requirement) => requirement.name)
-                .filter((building, index, array) => array.indexOf(building) === index)
-                // eslint-disable-next-line @typescript-eslint/unbound-method -- safe, collator doesn't use this
-                .sort(this.collator.compare)
-        )
-    );
-
-    public readonly combatResults$: Observable<CombatResultStatistics> = combineLatest([
-        this.ruleset$,
-        this.attackerInfo.pipe(filter((v): v is AttackerInfo => v !== null)),
-        this.defenderInfo.pipe(filter((v): v is DefenderInfo => v !== null))
-    ]).pipe(
-        map(([ruleset, attackerInfo, defenderInfo]) => {
-            const world: WorldState = {
-                attacker: attackerInfo,
-                defender: defenderInfo
-            };
-
-            //this.calculateResultChances(ruleset, world);
-            return this.simulateCombat(ruleset, world, 10000);
-        })
-    );
-
     constructor(private effectsResolver: EffectResolverService) {}
 
     public setRuleset(ruleset: Ruleset): void {
         console.info('Ruleset update', ruleset);
         this.ruleset.next(ruleset);
-    }
-
-    public pushAttackerInfo(info: AttackerInfo): void {
-        console.info('Attacker info update', info);
-        this.attackerInfo.next(info);
-    }
-
-    public pushDefenderInfo(info: DefenderInfo): void {
-        console.info('Defender info update', info);
-        this.defenderInfo.next(info);
     }
 
     public calculateResultChances(ruleset: Ruleset, world: WorldState): [CombatResult, CombatResult] {
@@ -120,13 +29,6 @@ export class CombatCalculationService {
         const defendPower = this.getTotalDefensePower(attUnitType, defUnitType, ruleset, world);
 
         const [attackerFp, defenderFp] = this.getModifiedFirepower(attUnitType, defUnitType, ruleset, world);
-
-        interface IntermediateResult {
-            attackerHp: number;
-            defenderHp: number;
-            // true = attacker won
-            sideWon: boolean[];
-        }
 
         const attackerRoundWinChance = attackPower / (attackPower + defendPower);
         const defenderRoundWinChance = 1 - attackerRoundWinChance;
@@ -145,54 +47,6 @@ export class CombatCalculationService {
             lostHpStdError: 0
         };
 
-        let results: IntermediateResult[] = [
-            { attackerHp: world.attacker.hp, defenderHp: world.defender.hp, sideWon: [] }
-        ];
-
-        /*const startTime = performance.now();
-        let finished = false;
-        let i = 0;
-        do {
-            i++;
-            let pushedResults = 0;
-            const newResults: IntermediateResult[] = [];
-            for (const result of results) {
-                if (result.attackerHp > 0 && result.defenderHp > 0) {
-                    newResults.push({
-                        attackerHp: result.attackerHp,
-                        defenderHp: result.defenderHp - attackerFp,
-                        sideWon: [...result.sideWon, true]
-                    });
-                    newResults.push({
-                        attackerHp: result.attackerHp - defenderFp,
-                        defenderHp: result.defenderHp,
-                        sideWon: [...result.sideWon, false]
-                    });
-                    pushedResults++;
-                } else {
-                    const winChance = result.sideWon.reduce(
-                        (chance, attackerWon) =>
-                            attackerWon ? chance * attackerRoundWinChance : chance * defenderRoundWinChance,
-                        1
-                    );
-                    if (result.attackerHp <= 0 && result.defenderHp > 0) {
-                        defenderCombatResult.winChance += winChance;
-                    } else if (result.defenderHp <= 0 && result.attackerHp > 0) {
-                        attackerCombatResult.winChance += winChance;
-                    } else {
-                        console.error('what in the fuck?', result);
-                        return [attackerCombatResult, defenderCombatResult];
-                    }
-                }
-            }
-            if (pushedResults === 0) {
-                finished = true;
-            }
-            results = newResults;
-        } while (!finished && i < 10000);
-        const endTime = performance.now();
-        console.log(results, attackerCombatResult, defenderCombatResult, i, endTime - startTime);*/
-
         /*
         TODO:
         basically, generate two sets of "win streaks", one for attacker final win, one for defender final win
@@ -201,82 +55,71 @@ export class CombatCalculationService {
         then, compute chance for this win streak (just the regular reduce()), multiply by permutation count
         add up all streaks together
         bam, chances for results
+
+        variant 2:
+        compute binomial stuffs for however many rounds are possible (there should be a very limited number of those,
+        like up to 39*2 for 20hp 1fp units)
+        then, we just map those to lost HP, get avgLostHp, get avgLostHpStdErr
+        then, we could in theory compute the next unit for all scenarios where defenderCount > 0
+        this should be 39^attackerCount for 20hp 1fp units (can we optimize this somehow? probably not, but still)
          */
 
-        const st1 = performance.now();
-        const [att, def] = this.hardCalculateRound(
-            attackerRoundWinChance,
-            defenderRoundWinChance,
-            world.attacker.hp,
-            world.defender.hp,
-            attackerFp,
-            defenderFp,
-            []
+        // Math.ceil to account for cases like 3 hp and 2 fp
+        const attackerRequiredWinRounds = Math.ceil(world.defender.hp / attackerFp);
+        const defenderRequiredWinRounds = Math.ceil(world.attacker.hp / defenderFp);
+        const attackerMaximumLoseRounds = Math.max(defenderRequiredWinRounds - 1, 0);
+        const defenderMaximumLoseRounds = Math.max(attackerRequiredWinRounds - 1, 0);
+
+        // TODO: refactor those two loops into a single function
+        //  (actually, should probably refactor this entire thing, it's a huge mess right now)
+        for (let i = 0; i <= defenderMaximumLoseRounds; i++) {
+            // defender win
+            const roundProbability =
+                binomialProbabilityMass(defenderMaximumLoseRounds + i, i, attackerRoundWinChance) *
+                defenderRoundWinChance;
+            const defenderHpLeft = world.defender.hp - i * attackerFp;
+            defenderCombatResult.hpChances.push([defenderHpLeft, roundProbability]);
+        }
+        for (let i = 0; i <= attackerMaximumLoseRounds; i++) {
+            // attacker win
+            const roundProbability =
+                binomialProbabilityMass(attackerMaximumLoseRounds + i, i, defenderRoundWinChance) *
+                attackerRoundWinChance;
+            const attackerHpLeft = world.attacker.hp - i * defenderFp;
+            attackerCombatResult.hpChances.push([attackerHpLeft, roundProbability]);
+        }
+        const defenderWinChance = binomialProbabilityCumulative(
+            attackerRequiredWinRounds + defenderRequiredWinRounds - 1,
+            defenderMaximumLoseRounds,
+            attackerRoundWinChance
         );
-        const et1 = performance.now();
-        console.log(att, def, et1 - st1);
+        defenderCombatResult.winChance = defenderWinChance;
+        const attackerWinChance = 1 - defenderWinChance;
+        attackerCombatResult.winChance = attackerWinChance;
 
-        return [
-            { winChance: 0, hpChances: [], averageLostHp: 0, lostHpStdError: 0 },
-            { winChance: 0, hpChances: [], averageLostHp: 0, lostHpStdError: 0 }
-        ];
+        const [defenderAvgLostHp, defenderLostHpStdErr] = this.avgLostHpFromHpChances([
+            ...defenderCombatResult.hpChances.map<[number, number]>(([result, probability]) => [
+                world.defender.hp - result,
+                probability
+            ]),
+            [world.defender.hp, attackerWinChance]
+        ]);
+        defenderCombatResult.averageLostHp = defenderAvgLostHp;
+        defenderCombatResult.lostHpStdError = defenderLostHpStdErr;
+        const [attackerAvgLostHp, attackerLostHpStdErr] = this.avgLostHpFromHpChances([
+            ...attackerCombatResult.hpChances.map<[number, number]>(([result, probability]) => [
+                world.attacker.hp - result,
+                probability
+            ]),
+            [world.attacker.hp, defenderWinChance]
+        ]);
+        attackerCombatResult.averageLostHp = attackerAvgLostHp;
+        attackerCombatResult.lostHpStdError = attackerLostHpStdErr;
+
+        return [attackerCombatResult, defenderCombatResult];
     }
 
-    private hardCalculateRound(
-        attackerRoundWinChance: number,
-        defenderRoundWinChance: number,
-        attackerHp: number,
-        defenderHp: number,
-        attackerFp: number,
-        defenderFp: number,
-        wins: boolean[]
-    ): [number, number] {
-        if (wins.length > 30) {
-            throw new Error('nope!');
-        }
-        let attackerWinChance = 0;
-        let defenderWinChance = 0;
-        if (attackerHp - defenderFp <= 0) {
-            attackerWinChance += [...wins, false].reduce(
-                (chance, attackerWon) =>
-                    attackerWon ? chance * attackerRoundWinChance : chance * defenderRoundWinChance,
-                1
-            );
-        } else {
-            const [nextRoundAttackerWin, nextRoundDefenderWin] = this.hardCalculateRound(
-                attackerRoundWinChance,
-                defenderRoundWinChance,
-                attackerHp - defenderFp,
-                defenderHp,
-                attackerFp,
-                defenderFp,
-                [...wins, false]
-            );
-            attackerWinChance += nextRoundAttackerWin;
-            defenderWinChance += nextRoundDefenderWin;
-        }
-        if (defenderHp - attackerFp <= 0) {
-            defenderWinChance += [...wins, true].reduce(
-                (chance, attackerWon) =>
-                    attackerWon ? chance * attackerRoundWinChance : chance * defenderRoundWinChance,
-                1
-            );
-        } else {
-            const [nextRoundAttackerWin, nextRoundDefenderWin] = this.hardCalculateRound(
-                attackerRoundWinChance,
-                defenderRoundWinChance,
-                attackerHp,
-                defenderHp - attackerFp,
-                attackerFp,
-                defenderFp,
-                [...wins, true]
-            );
-            attackerWinChance += nextRoundAttackerWin;
-            defenderWinChance += nextRoundDefenderWin;
-        }
-        return [attackerWinChance, defenderWinChance];
-    }
-
+    // Leaving this here for now, even though it's not used anywhere
     public simulateCombat(ruleset: Ruleset, world: WorldState, combatRounds: number): CombatResultStatistics {
         const startTime = performance.now();
         const attUnitType = world.attacker.unitType;
@@ -494,5 +337,16 @@ export class CombatCalculationService {
             }
         }
         return total;
+    }
+
+    private avgLostHpFromHpChances(hpResults: [number, number][]): [number, number] {
+        const weightedHpResults = hpResults.map(([result, probability]) => result * probability);
+        const weightedLostHpSum = weightedHpResults.reduce((sum, result) => sum + result, 0);
+        const weightedLostHpSquaresSum = hpResults.reduce(
+            (sum, [result, probability]) => sum + result ** 2 * probability,
+            0
+        );
+        const weightedLostHpStdErr = Math.sqrt(weightedLostHpSquaresSum - weightedLostHpSum ** 2);
+        return [weightedLostHpSum, weightedLostHpStdErr];
     }
 }
