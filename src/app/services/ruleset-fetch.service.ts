@@ -317,11 +317,18 @@ export class RulesetFetchService {
                     nativeUnitClasses = entryValueAsValueList(nativeToEntry).map((value) => rawValueAsString(value));
                 }
 
+                const flagsEntry = findPossibleEntry(section, 'flags');
+                let flags: string[] = [];
+                if (flagsEntry !== undefined) {
+                    flags = entryValueAsValueList(flagsEntry).map((value) => rawValueAsString(value));
+                }
+
                 return {
                     id: section.name.substring(terrainExtraIdPrefix.length),
                     name: this.cleanTranslatableName(entryValueAsString(nameEntry)),
                     defenseBonus,
-                    nativeUnitClasses
+                    nativeUnitClasses,
+                    flags
                 };
             });
 

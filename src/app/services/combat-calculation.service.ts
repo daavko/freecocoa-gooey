@@ -1,5 +1,13 @@
 import { Injectable } from '@angular/core';
-import { Ruleset, Terrain, UnitClass, UnitType, UnitTypeBonus, VeteranLevel } from 'src/app/models/ruleset.model';
+import {
+    Ruleset,
+    Terrain,
+    TerrainExtra,
+    UnitClass,
+    UnitType,
+    UnitTypeBonus,
+    VeteranLevel
+} from 'src/app/models/ruleset.model';
 import { CombatResult, WorldState } from 'src/app/models/combat-info.model';
 import { EffectResolverService } from 'src/app/services/effect-resolver.service';
 import { getUnitClassByName } from 'src/app/utils/ruleset-utils';
@@ -183,7 +191,8 @@ export class CombatCalculationService {
 
         defensePower = Math.floor((defensePower * 100) / defDividerBonus);
 
-        // todo: tile defense bonus here - combat.cpp:583
+        const extrasDefenseBonus = this.getExtrasDefenseBonus(world.defenderMeta.extras, defUnitType.class);
+        defensePower += Math.floor((defensePower * extrasDefenseBonus) / 100);
 
         const fortifyDefenseBonusEffect =
             100 + this.effectsResolver.resolveFortifyDefendEffects(defUnitType, ruleset, world);
@@ -221,6 +230,29 @@ export class CombatCalculationService {
         const totalDefenseDividerBonus = 100 + defenseDividerPct + 100 * defenseDivider;
 
         return [totalDefenseMultiplierBonus, totalDefenseDividerBonus];
+    }
+
+    private getExtrasDefenseBonus(tileExtras: TerrainExtra[], unitClassName: string): number {
+        const naturalDefensiveBonus = tileExtras
+            .filter(
+                (extra) =>
+                    extra.nativeUnitClasses.includes(unitClassName) &&
+                    extra.flags.includes('NaturalDefense') &&
+                    extra.defenseBonus > 0
+            )
+            .reduce((bonus, extra) => bonus + extra.defenseBonus, 0);
+
+        // freeciv code calls this fortification_bonus
+        const defensiveBonus = tileExtras
+            .filter(
+                (extra) =>
+                    extra.nativeUnitClasses.includes(unitClassName) &&
+                    !extra.flags.includes('NaturalDefense') &&
+                    extra.defenseBonus > 0
+            )
+            .reduce((bonus, extra) => bonus + extra.defenseBonus, 0);
+
+        return Math.floor(((naturalDefensiveBonus + 100) * (defensiveBonus + 100)) / 100) - 100;
     }
 
     private calculateCombatBonus(
