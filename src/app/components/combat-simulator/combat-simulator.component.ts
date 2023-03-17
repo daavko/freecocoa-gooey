@@ -13,6 +13,7 @@ import { UnitType } from 'src/app/models/ruleset.model';
 })
 export class CombatSimulatorComponent {
     public readonly sortedUnitTypes$: Observable<UnitType[]>;
+    public readonly attackerUnitTypes$: Observable<UnitType[]>;
 
     public readonly attackerResult$: Observable<CombatResult>;
     public readonly defenderResult$: Observable<CombatResult>;
@@ -26,6 +27,11 @@ export class CombatSimulatorComponent {
         this.sortedUnitTypes$ = rulesetFacade.ruleset$.pipe(
             // ruleset.unitTypes is readonly so we have to clone it
             map((ruleset) => [...ruleset.unitTypes].sort((a, b) => collator.compare(a.name, b.name)))
+        );
+        this.attackerUnitTypes$ = this.sortedUnitTypes$.pipe(
+            map((unitTypes) =>
+                unitTypes.filter((unitType) => unitType.attack > 0 && !unitType.flags.includes('NonMil'))
+            )
         );
 
         // TODO: should this be moved to CombatSimulatorStore?
