@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { RequirementRange, Ruleset, UnitType } from 'src/app/models/ruleset.model';
+import { Building, RequirementRange, Ruleset, UnitType } from 'src/app/models/ruleset.model';
 import { WorldState } from 'src/app/models/combat-info.model';
 import { getUnitClassByName } from 'src/app/utils/ruleset-utils';
 
@@ -108,6 +108,46 @@ export class EffectResolverService {
                                 ? req.present
                                 : !req.present;
                         break;
+                    default:
+                        // unknown restriction, bail out
+                        applies = false;
+                        console.warn(`Unknown effect requirement type found: "${req.type}"`, req);
+                        break reqLoop;
+                }
+                if (!roundPassed) {
+                    applies = false;
+                    break;
+                }
+            }
+            if (applies) {
+                tally += effect.value;
+            }
+        }
+        return tally;
+    }
+
+    public resolveInciteCostPctEffect(ruleset: Ruleset, unitsOnTile: number, buildings: Building[]): number {
+        const effects = ruleset.effects.filter((effect) => effect.type === 'Incite_Cost_Pct');
+
+        let tally = 0;
+        for (const effect of effects) {
+            let applies = true;
+            reqLoop: for (const req of effect.requirements) {
+                let roundPassed;
+                switch (req.type) {
+                    case 'Building': {
+                        roundPassed =
+                            req.range === RequirementRange.CITY &&
+                            buildings.some((building) => building.name === req.name)
+                                ? req.present
+                                : !req.present;
+                        break;
+                    }
+                    case 'MaxUnitsOnTile': {
+                        roundPassed =
+                            req.range === RequirementRange.LOCAL && unitsOnTile === Number.parseInt(req.range);
+                        break;
+                    }
                     default:
                         // unknown restriction, bail out
                         applies = false;

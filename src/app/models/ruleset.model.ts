@@ -6,6 +6,10 @@ export interface Ruleset {
     terrainTypes: Terrain[];
     terrainExtras: TerrainExtra[];
     moveFrags: number;
+    inciteCosts: InciteCosts;
+    buildings: Building[];
+    cityParameters: CityParameters;
+    citizenSettings: CitizenSettings;
 }
 
 export interface Effect {
@@ -50,6 +54,7 @@ export interface UnitType {
     id: string;
     name: string;
     class: string;
+    buildCost: number;
     attack: number;
     defense: number;
     firepower: number;
@@ -91,4 +96,25 @@ export interface TerrainExtra {
     defenseBonus: number;
     nativeUnitClasses: string[];
     flags: string[];
+}
+
+export interface InciteCosts {
+    baseInciteCost: number;
+    improvementFactor: number;
+    unitFactor: number;
+    totalFactor: number;
+}
+
+export interface Building {
+    id: string;
+    name: string;
+    buildCost: number;
+}
+
+export interface CityParameters {
+    celebrateSizeLimit: number;
+}
+
+export interface CitizenSettings {
+    nationality: boolean;
 }

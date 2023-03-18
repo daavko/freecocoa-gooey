@@ -2,7 +2,11 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { combineLatest, map, Observable } from 'rxjs';
 import {
+    Building,
+    CitizenSettings,
+    CityParameters,
     Effect,
+    InciteCosts,
     Requirement,
     REQUIREMENT_RANGES,
     RequirementRange,
@@ -16,9 +20,10 @@ import {
 } from 'src/app/models/ruleset.model';
 import { FreecivIniLexer } from 'src/app/services/parser/freeciv-ini-lexer';
 import { FreecivIniParser } from 'src/app/services/parser/freeciv-ini-parser';
-import { FreecivIniToAstVisitor, IFreecivIniToAstVisitor } from 'src/app/services/parser/freeciv-ini-to-ast-visitor';
+import { FreecivIniToAstVisitor } from 'src/app/services/parser/freeciv-ini-to-ast-visitor';
 import { IniFile, IniTable, IniValueList } from 'src/app/services/parser/freeciv-ini-ast';
 import {
+    entryValueAsBoolean,
     entryValueAsNumber,
     entryValueAsString,
     entryValueAsTable,
@@ -44,47 +49,59 @@ export class RulesetFetchService {
             baseUrl = baseUrl.slice(0, -1);
         }
 
-        const effects$ = this.http.get(`${baseUrl}/effects.ruleset`, { responseType: 'text' });
-        const terrain$ = this.http.get(`${baseUrl}/terrain.ruleset`, { responseType: 'text' });
-        const units$ = this.http.get(`${baseUrl}/units.ruleset`, { responseType: 'text' });
+        const effectsFile$ = this.fetchFile(baseUrl, 'effects.ruleset');
+        const terrainFile$ = this.fetchFile(baseUrl, 'terrain.ruleset');
+        const unitsFile$ = this.fetchFile(baseUrl, 'units.ruleset');
+        const gameFile$ = this.fetchFile(baseUrl, 'game.ruleset');
+        const buildingsFile$ = this.fetchFile(baseUrl, 'buildings.ruleset');
+        const citiesFile$ = this.fetchFile(baseUrl, 'cities.ruleset');
 
-        return combineLatest([units$, terrain$, effects$]).pipe(
-            map(([units, terrain, effects]) => {
-                const unitsFile = this.parseFile(units);
-                const terrainFile = this.parseFile(terrain);
-                const effectsFile = this.parseFile(effects);
-
+        return combineLatest([effectsFile$, terrainFile$, unitsFile$, gameFile$, buildingsFile$, citiesFile$]).pipe(
+            map(([effectsFile, terrainFile, unitsFile, gameFile, buildingsFile, citiesFile]) => {
                 const [unitClasses, unitTypes, defaultVeteranLevels] = this.extractUnitsFile(unitsFile);
                 const [terrainTypes, terrainExtras, moveFrags] = this.extractTerrainFile(terrainFile);
-                const effectsList = this.extractEffectsFile(effectsFile);
+                const effects = this.extractEffectsFile(effectsFile);
+                const inciteCosts = this.extractGameFile(gameFile);
+                const buildings = this.extractBuildingsFile(buildingsFile);
+                const [cityParameters, citizenSettings] = this.extractCitiesFile(citiesFile);
                 return {
-                    effects: effectsList,
+                    effects,
                     unitTypes,
                     unitClasses,
                     defaultVeteranLevels,
                     terrainTypes,
                     terrainExtras,
-                    moveFrags
+                    moveFrags,
+                    inciteCosts,
+                    buildings,
+                    cityParameters,
+                    citizenSettings
                 };
             })
         );
     }
 
-    private parseFile(file: string): ReturnType<IFreecivIniToAstVisitor['iniContents']> {
+    private fetchFile(baseUrl: string, filename: string): Observable<IniFile> {
+        return this.http
+            .get(`${baseUrl}/${filename}`, { responseType: 'text' })
+            .pipe(map((file) => this.parseFile(file, filename)));
+    }
+
+    private parseFile(file: string, filename: string): IniFile {
         const lexedFile = FreecivIniLexer.tokenize(file);
         if (lexedFile.errors.length > 0) {
             console.error(lexedFile.errors);
-            throw new Error('Lexing error');
+            throw new Error(`Lexing error in ${filename}`);
         }
 
         this.parser.input = lexedFile.tokens;
         const parsedFile = this.parser.iniContents();
         if (this.parser.errors.length > 0) {
             console.error(this.parser.errors);
-            throw new Error('Parser error');
+            throw new Error(`Parser error in ${filename}`);
         }
 
-        return this.cstVisitor.visit(parsedFile) as ReturnType<IFreecivIniToAstVisitor['iniContents']>;
+        return this.cstVisitor.visit(parsedFile) as IniFile;
     }
 
     private extractEffectsFile(file: IniFile): Effect[] {
@@ -201,6 +218,7 @@ export class RulesetFetchService {
             .map((section) => {
                 const nameEntry = findGuaranteedEntry(section, 'name');
                 const classEntry = findGuaranteedEntry(section, 'class');
+                const buildCostEntry = findGuaranteedEntry(section, 'build_cost');
                 const attackEntry = findGuaranteedEntry(section, 'attack');
                 const defenseEntry = findGuaranteedEntry(section, 'defense');
                 const firepowerEntry = findGuaranteedEntry(section, 'firepower');
@@ -248,6 +266,7 @@ export class RulesetFetchService {
                     id: section.name.substring(unitTypeIdPrefix.length),
                     name: this.cleanTranslatableName(entryValueAsString(nameEntry)),
                     class: entryValueAsString(classEntry),
+                    buildCost: entryValueAsNumber(buildCostEntry),
                     attack: entryValueAsNumber(attackEntry),
                     defense: entryValueAsNumber(defenseEntry),
                     firepower: entryValueAsNumber(firepowerEntry),
@@ -336,6 +355,54 @@ export class RulesetFetchService {
         const moveFragsEntry = findGuaranteedEntry(paramsSection, 'move_fragments');
 
         return [terrains, terrainExtras, entryValueAsNumber(moveFragsEntry)];
+    }
+
+    private extractGameFile(file: IniFile): InciteCosts {
+        const inciteCostSection = findGuaranteedSection(file, 'incite_cost');
+        const baseInciteCostEntry = findGuaranteedEntry(inciteCostSection, 'base_incite_cost');
+        const improvementFactorEntry = findGuaranteedEntry(inciteCostSection, 'improvement_factor');
+        const unitFactorEntry = findGuaranteedEntry(inciteCostSection, 'unit_factor');
+        const totalFactorEntry = findGuaranteedEntry(inciteCostSection, 'total_factor');
+
+        return {
+            baseInciteCost: entryValueAsNumber(baseInciteCostEntry),
+            improvementFactor: entryValueAsNumber(improvementFactorEntry),
+            unitFactor: entryValueAsNumber(unitFactorEntry),
+            totalFactor: entryValueAsNumber(totalFactorEntry)
+        };
+    }
+
+    private extractBuildingsFile(file: IniFile): Building[] {
+        const buildingIdPrefix = 'building_';
+        return file.sections
+            .filter((section) => section.name.startsWith(buildingIdPrefix))
+            .map((section) => {
+                const nameEntry = findGuaranteedEntry(section, 'name');
+                const buildCostEntry = findGuaranteedEntry(section, 'build_cost');
+
+                return {
+                    id: section.name.substring(buildingIdPrefix.length),
+                    name: this.cleanTranslatableName(entryValueAsString(nameEntry)),
+                    buildCost: entryValueAsNumber(buildCostEntry)
+                };
+            });
+    }
+
+    private extractCitiesFile(file: IniFile): [CityParameters, CitizenSettings] {
+        const parametersSection = findGuaranteedSection(file, 'parameters');
+        const celebrateSizeLimitEntry = findGuaranteedEntry(parametersSection, 'celebrate_size_limit');
+
+        const citizenSection = findGuaranteedSection(file, 'citizen');
+        const nationalityEntry = findGuaranteedEntry(citizenSection, 'nationality');
+
+        return [
+            {
+                celebrateSizeLimit: entryValueAsNumber(celebrateSizeLimitEntry)
+            },
+            {
+                nationality: entryValueAsBoolean(nationalityEntry)
+            }
+        ];
     }
 
     private cleanTranslatableName(name: string): string {
