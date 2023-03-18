@@ -8,7 +8,7 @@ import { createToken, Lexer } from 'chevrotain';
  */
 function stringContentsMatcher(text: string, startOffset: number): [string] | null {
     const openingQuote = text[startOffset];
-    if (openingQuote !== `"` && openingQuote !== `'`) {
+    if (openingQuote !== `"` && openingQuote !== `'` && openingQuote !== '*') {
         return null;
     }
 
@@ -59,7 +59,7 @@ const stringValue = createToken({
     name: 'strCont',
     label: 'string',
     pattern: stringContentsMatcher,
-    start_chars_hint: ["'", '"'],
+    start_chars_hint: ["'", '"', '*'],
     line_breaks: true
 });
 
