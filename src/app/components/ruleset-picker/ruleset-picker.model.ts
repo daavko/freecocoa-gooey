@@ -19,13 +19,23 @@ export const rulesetPresets: RulesetPreset[] = [
         baseUrl: `${longturnLttLtxUrlBase}/LTX/data/LTX`
     },
     {
-        name: 'lt76',
-        label: 'LT76Team LTX snapshot',
-        baseUrl: `${longturnGamesUrlBase}/LT76Team/data/LT76Team`
+        name: 'lt81',
+        label: 'LT81 LTX snapshot',
+        baseUrl: `${longturnGamesUrlBase}/LT81/data/LT81`
+    },
+    {
+        name: 'leaguea5',
+        label: 'LeagueA5 LTT snapshot',
+        baseUrl: `${longturnGamesUrlBase}/LeagueA5/data/LeagueA5`
     },
     {
         name: 'lt82',
         label: 'LT82 LTT snapshot',
         baseUrl: `${longturnGamesUrlBase}/LT82/data/LT82`
+    },
+    {
+        name: 'lt83',
+        label: 'LT83 LTX snapshot',
+        baseUrl: `${longturnGamesUrlBase}/LT83/data/LT83`
     }
 ];
