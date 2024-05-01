@@ -65,3 +65,13 @@ export function binomialProbabilityCumulative(trials: number, successes: number,
     }
     return sum;
 }
+
+/**
+ * Division of two integers, returning an integer
+ *
+ * @param dividend
+ * @param divisor
+ */
+export function integerDivision(dividend: number, divisor: number): number {
+    return Math.floor(dividend / divisor);
+}

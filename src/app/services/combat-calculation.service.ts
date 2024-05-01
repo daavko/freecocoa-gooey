@@ -11,7 +11,7 @@ import {
 import { CombatResult, WorldState } from 'src/app/models/combat-info.model';
 import { EffectResolverService } from 'src/app/services/effect-resolver.service';
 import { getUnitClassByName } from 'src/app/utils/ruleset-utils';
-import { binomialProbabilityCumulative, binomialProbabilityMass } from 'src/app/utils/number-utils';
+import { binomialProbabilityCumulative, binomialProbabilityMass, integerDivision } from 'src/app/utils/number-utils';
 
 // I don't know why this exists, but it does
 const POWER_FACTOR = 10;
@@ -168,8 +168,9 @@ export class CombatCalculationService {
     }
 
     private getTotalAttackPower(attUnitType: UnitType, ruleset: Ruleset, world: WorldState): number {
-        let attackPower = Math.floor(
-            (attUnitType.attack * POWER_FACTOR * world.attacker.veteranLevel.powerFactor) / 100
+        let attackPower = integerDivision(
+            attUnitType.attack * POWER_FACTOR * world.attacker.veteranLevel.powerFactor,
+            100
         );
         if (world.attacker.moves < ruleset.moveFrags) {
             attackPower = Math.floor((attackPower * world.attacker.moves) / ruleset.moveFrags);
@@ -194,20 +195,20 @@ export class CombatCalculationService {
         let defensePower = this.getDefensePower(defUnitType, defUnitClass, defTile, world.defender.veteranLevel);
 
         const [defMultiplierBonus, defDividerBonus] = this.getDefenseBonuses(attUnitType, defUnitType);
-        defensePower = Math.floor((defensePower * defMultiplierBonus) / 100);
+        defensePower = integerDivision(defensePower * defMultiplierBonus, 100);
 
         const defenseBonusEffect = 100 + this.effectsResolver.resolveDefenseEffects(attUnitType, ruleset, world);
-        defensePower = Math.max(0, Math.floor((defensePower * defenseBonusEffect) / 100));
+        defensePower = Math.max(0, integerDivision(defensePower * defenseBonusEffect, 100));
 
-        defensePower = Math.floor((defensePower * 100) / defDividerBonus);
+        defensePower = integerDivision(defensePower * 100, defDividerBonus);
 
         const extrasDefenseBonus = this.getExtrasDefenseBonus(world.defenderMeta.extras, defUnitType.class);
-        defensePower += Math.floor((defensePower * extrasDefenseBonus) / 100);
+        defensePower += integerDivision(defensePower * extrasDefenseBonus, 100);
 
         const fortifyDefenseBonusEffect =
             100 + this.effectsResolver.resolveFortifyDefendEffects(defUnitType, ruleset, world);
 
-        defensePower = Math.floor((defensePower * fortifyDefenseBonusEffect) / 100);
+        defensePower = integerDivision(defensePower * fortifyDefenseBonusEffect, 100);
 
         return defensePower;
     }
@@ -218,10 +219,10 @@ export class CombatCalculationService {
         defenderTile: Terrain,
         veteranLevel: VeteranLevel
     ): number {
-        let defensePower = Math.floor((defender.defense * POWER_FACTOR * veteranLevel.powerFactor) / 100);
+        let defensePower = integerDivision(defender.defense * POWER_FACTOR * veteranLevel.powerFactor, 100);
         if (defenderClass.flags.includes('TerrainDefense')) {
             const tileBonus = 100 + defenderTile.defenseBonus;
-            defensePower = Math.floor((defensePower * tileBonus) / 100);
+            defensePower = integerDivision(defensePower * tileBonus, 100);
         }
         return defensePower;
     }
@@ -262,7 +263,7 @@ export class CombatCalculationService {
             )
             .reduce((bonus, extra) => bonus + extra.defenseBonus, 0);
 
-        return Math.floor(((naturalDefensiveBonus + 100) * (defensiveBonus + 100)) / 100) - 100;
+        return integerDivision((naturalDefensiveBonus + 100) * (defensiveBonus + 100), 100) - 100;
     }
 
     private calculateCombatBonus(
