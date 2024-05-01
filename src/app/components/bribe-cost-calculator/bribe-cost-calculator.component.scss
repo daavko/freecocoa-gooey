@@ -1,3 +1,22 @@
 :host {
     display: block;
 }
+
+.bribe-calculator-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+    align-items: start;
+}
+
+.vertical-gapped {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.two-cols-hint {
+    text-align: end;
+    padding-inline-end: 16px;
+    margin: 2px 0 0;
+}

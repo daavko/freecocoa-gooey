@@ -34,6 +34,10 @@ a {
         grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
         gap: 16px;
         align-items: center;
+
+        &--align-top {
+            align-items: start;
+        }
     }
 
     &__single-line {
@@ -45,6 +49,10 @@ a {
             flex-grow: 1;
         }
     }
+
+    &__appearance-textfield {
+        appearance: textfield !important; // !important required to override mat-input styles
+    }
 }
 
 .fullwidth {
@@ -53,6 +61,10 @@ a {
 
 .nomargin {
     margin: 0 !important; // !important required to override mat-typography styles
+}
+
+.text-right {
+    text-align: right;
 }
 
 .mat-form-field-height-compensation {

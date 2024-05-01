@@ -11,17 +11,13 @@ export class RulesetEffects {
     public readonly loadRuleset = createEffect(() => {
         return this.actions$.pipe(
             ofType(rulesetActions.loadRuleset),
-            concatMap((action) =>
-                this.rulesetLoader.fetchRuleset(action.baseUrl).pipe(
-                    map((ruleset) =>
-                        rulesetActions.loadRulesetSuccess({
-                            ruleset,
-                            rulesetType: action.rulesetType,
-                            label: action.label
-                        })
+            concatMap(({ baseUrl, settingsUrl, playersUrl, rulesetType, label }) =>
+                this.rulesetLoader.fetchRuleset(baseUrl, settingsUrl, playersUrl).pipe(
+                    map(([ruleset, gameSettings]) =>
+                        rulesetActions.loadRulesetSuccess({ ruleset, rulesetType, label, gameSettings })
                     ),
                     catchError((error: unknown) => {
-                        console.log('Failed to load ruleset', error);
+                        console.error('Failed to load ruleset', error);
                         return of(rulesetActions.loadRulesetError());
                     })
                 )

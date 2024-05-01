@@ -19,6 +19,16 @@ export class RulesetPickerComponent implements OnDestroy {
     public readonly rulesetPresets = rulesetPresets;
 
     public pickerForm = new FormGroup({
+        settingsUrl: new FormControl<string>({ value: '', disabled: false }, [
+            Validators.required,
+            isValidUrl,
+            noGithubComUrl
+        ]),
+        playersUrl: new FormControl<string>({ value: '', disabled: false }, [
+            Validators.required,
+            isValidUrl,
+            noGithubComUrl
+        ]),
         baseUrl: new FormControl<string>({ value: '', disabled: false }, [
             Validators.required,
             isValidUrl,
@@ -52,17 +62,17 @@ export class RulesetPickerComponent implements OnDestroy {
     }
 
     public loadRulesetPreset(preset: RulesetPreset): void {
-        this.rulesetFacade.loadRuleset(preset.baseUrl, 'preset', preset.label);
+        this.rulesetFacade.loadRuleset(preset.baseUrl, preset.settingsUrl, preset.playersUrl, 'preset', preset.label);
     }
 
     public loadCustomRuleset(): void {
-        const { baseUrl } = this.pickerForm.getRawValue();
+        const { baseUrl, settingsUrl, playersUrl } = this.pickerForm.getRawValue();
 
-        if (baseUrl === null) {
+        if (baseUrl === null || settingsUrl === null || playersUrl === null) {
             throw new Error('this should never happen');
         }
 
-        this.rulesetFacade.loadRuleset(baseUrl, 'custom', 'Custom ruleset');
+        this.rulesetFacade.loadRuleset(baseUrl, settingsUrl, playersUrl, 'custom', 'Custom ruleset');
     }
 
     public isInvalid(control: AbstractControl): boolean {

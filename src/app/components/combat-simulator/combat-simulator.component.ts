@@ -21,13 +21,8 @@ export class CombatSimulatorComponent {
     private readonly attackerInfo = new Subject<AttackerInfo>();
     private readonly defenderInfo = new Subject<DefenderInfo>();
     private readonly defenderMetaInfo = new Subject<DefenderMetaInfo>();
-    constructor(private rulesetFacade: RulesetFacade, private combatCalculation: CombatCalculationService) {
-        const collator = new Intl.Collator('en');
-
-        this.sortedUnitTypes$ = rulesetFacade.ruleset$.pipe(
-            // ruleset.unitTypes is readonly so we have to clone it
-            map((ruleset) => [...ruleset.unitTypes].sort((a, b) => collator.compare(a.name, b.name)))
-        );
+    constructor(rulesetFacade: RulesetFacade, private combatCalculation: CombatCalculationService) {
+        this.sortedUnitTypes$ = rulesetFacade.rulesetSortedUnitTypes$;
         this.attackerUnitTypes$ = this.sortedUnitTypes$.pipe(
             map((unitTypes) =>
                 unitTypes.filter((unitType) => unitType.attack > 0 && !unitType.flags.includes('NonMil'))

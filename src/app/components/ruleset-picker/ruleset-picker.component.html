@@ -1,9 +1,4 @@
 <div class="ruleset-preset-cards">
-    <mat-card class="ruleset-card" *ngFor="let preset of rulesetPresets" (click)="loadRulesetPreset(preset)">
-        <mat-card-content>
-            <h3 class="ruleset-card__title">{{ preset.label }}</h3>
-        </mat-card-content>
-    </mat-card>
     <mat-card class="custom-ruleset-card">
         <mat-card-header>
             <mat-card-title>
@@ -13,7 +8,21 @@
         <mat-card-content>
             <form class="custom-ruleset-card__form" [formGroup]="pickerForm">
                 <mat-form-field color="primary">
-                    <mat-label>Ruleset base URL</mat-label>
+                    <mat-label>Ruleset .serv file URL</mat-label>
+                    <input matInput formControlName="settingsUrl" [readonly]="(loadState$ | async) === 'loading'" />
+                    <mat-error *ngIf="isInvalid(pickerForm.controls.settingsUrl)">
+                        {{ getError(pickerForm.controls.settingsUrl) }}
+                    </mat-error>
+                </mat-form-field>
+                <mat-form-field color="primary">
+                    <mat-label>players.serv file URL</mat-label>
+                    <input matInput formControlName="playersUrl" [readonly]="(loadState$ | async) === 'loading'" />
+                    <mat-error *ngIf="isInvalid(pickerForm.controls.playersUrl)">
+                        {{ getError(pickerForm.controls.playersUrl) }}
+                    </mat-error>
+                </mat-form-field>
+                <mat-form-field color="primary">
+                    <mat-label>Ruleset data base URL</mat-label>
                     <input matInput formControlName="baseUrl" [readonly]="(loadState$ | async) === 'loading'" />
                     <mat-error *ngIf="isInvalid(pickerForm.controls.baseUrl)">
                         {{ getError(pickerForm.controls.baseUrl) }}
@@ -30,5 +39,10 @@
                 Load ruleset
             </button>
         </mat-card-actions>
+    </mat-card>
+    <mat-card class="ruleset-card" *ngFor="let preset of rulesetPresets" (click)="loadRulesetPreset(preset)">
+        <mat-card-content>
+            <h3 class="ruleset-card__title">{{ preset.label }}</h3>
+        </mat-card-content>
     </mat-card>
 </div>

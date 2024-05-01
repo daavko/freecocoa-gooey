@@ -3,11 +3,19 @@ export interface Coordinates {
     y: number;
 }
 
-export interface MapInfo {
+export interface MapSize {
     xSize: number;
     ySize: number;
-    wrapX: number;
-    wrapY: number;
+}
+
+export interface MapRatio {
+    xRatio: number;
+    yRatio: number;
+}
+
+export interface MapInfo {
+    wrapX: boolean;
+    wrapY: boolean;
     isometric: boolean;
     hex: boolean;
 }
