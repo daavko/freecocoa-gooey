@@ -1,1 +1,176 @@
-<p>Coming soon<sup>TM</sup></p>
+<p>TODO: properly handle the <code>Unit_Bribe_Cost_Pct</code> effect (LTT and LTX don't use it, so I didn't bother)</p>
+<p>
+    Note: This calculator doesn't make any assumptions about the target player's government or wonders. Some governments
+    and wonders may prevent you from bribing units altogether.
+</p>
+<div class="bribe-calculator-container">
+    <div class="vertical-gapped">
+        <mat-card>
+            <mat-card-header>
+                <mat-card-title><h2>Bribed unit</h2></mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+                <form class="formutils__gaps" [formGroup]="bribedUnitForm">
+                    <mat-form-field class="fullwidth" subscriptSizing="dynamic">
+                        <mat-label>Bribed unit</mat-label>
+                        <mat-select
+                            formControlName="unitType"
+                            panelClass="select-10-values"
+                            (selectionChange)="unitTypeSelectionChanged()">
+                            <mat-option *ngFor="let unitType of sortedUnitTypes$ | async" [value]="unitType">{{
+                                unitType.name
+                            }}</mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                    <mat-form-field class="fullwidth" subscriptSizing="dynamic">
+                        <mat-label>Veteran level</mat-label>
+                        <mat-select formControlName="veteranLevel">
+                            <mat-option *ngFor="let level of availableVeteranLevels$ | async" [value]="level">{{
+                                level.name
+                            }}</mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                    <div class="formutils__single-line">
+                        <p class="nomargin">HP</p>
+                        <mat-slider
+                            class="formutils__single-line__grow"
+                            min="0"
+                            [max]="(maxHp$ | async) ?? 0"
+                            step="1"
+                            discrete
+                            showTickMarks>
+                            <input matSliderThumb formControlName="hp" />
+                        </mat-slider>
+                    </div>
+                    <div>
+                        <div class="formutils__two-cols formutils__two-cols--align-top">
+                            <mat-form-field class="fullwidth" subscriptSizing="dynamic">
+                                <mat-label>Unit X coordinate</mat-label>
+                                <input matInput type="number" formControlName="xCoordinate" min="0" />
+                                <mat-error *ngIf="bribedUnitForm.controls.xCoordinate.hasError('maxOther')">
+                                    X coordinate must be less than the map's X size
+                                </mat-error>
+                            </mat-form-field>
+                            <mat-form-field class="fullwidth" subscriptSizing="dynamic">
+                                <mat-label>Unit Y coordinate</mat-label>
+                                <input matInput type="number" formControlName="yCoordinate" min="0" />
+                                <mat-error *ngIf="bribedUnitForm.controls.yCoordinate.hasError('maxOther')">
+                                    Y coordinate must be less than the map's Y size
+                                </mat-error>
+                            </mat-form-field>
+                        </div>
+                        <p class="mat-small two-cols-hint">
+                            This is "Location" in the middle-click popup, <strong>not</strong> "Native coordinates"
+                        </p>
+                    </div>
+                </form>
+            </mat-card-content>
+        </mat-card>
+        <mat-card>
+            <mat-card-header>
+                <mat-card-title><h2>Bribed unit owner</h2></mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+                <form class="formutils__gaps" [formGroup]="unitOwnerForm">
+                    <mat-form-field class="fullwidth" subscriptSizing="dynamic">
+                        <mat-label>Gold</mat-label>
+                        <input matInput type="number" formControlName="gold" min="0" />
+                    </mat-form-field>
+                    <div>
+                        <div class="formutils__two-cols">
+                            <mat-form-field class="fullwidth" subscriptSizing="dynamic">
+                                <mat-label>Capital X coordinate</mat-label>
+                                <input matInput type="number" formControlName="capitalXCoordinate" min="0" />
+                                <mat-error *ngIf="unitOwnerForm.controls.capitalXCoordinate.hasError('maxOther')">
+                                    X coordinate must be less than the map's X size
+                                </mat-error>
+                            </mat-form-field>
+                            <mat-form-field class="fullwidth" subscriptSizing="dynamic">
+                                <mat-label>Capital Y coordinate</mat-label>
+                                <input matInput type="number" formControlName="capitalYCoordinate" min="0" />
+                                <mat-error *ngIf="unitOwnerForm.controls.capitalYCoordinate.hasError('maxOther')">
+                                    Y coordinate must be less than the map's Y size
+                                </mat-error>
+                            </mat-form-field>
+                        </div>
+                        <p class="mat-small two-cols-hint">
+                            This is "Location" in the middle-click popup, <strong>not</strong> "Native coordinates"
+                        </p>
+                    </div>
+                </form>
+            </mat-card-content>
+        </mat-card>
+    </div>
+    <div class="vertical-gapped">
+        <mat-card>
+            <mat-card-header>
+                <mat-card-title><h2>Game</h2></mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+                <p class="mat-small">Automatically loaded from game setup, only shown for reference</p>
+                <form class="formutils__gaps" [formGroup]="gameInfoForm">
+                    <mat-form-field class="fullwidth" subscriptSizing="dynamic">
+                        <mat-label>Shieldbox</mat-label>
+                        <input
+                            matInput
+                            type="number"
+                            formControlName="shieldBox"
+                            class="formutils__appearance-textfield" />
+                        <mat-hint align="end">You can find this via <code>/show shieldbox</code></mat-hint>
+                    </mat-form-field>
+                </form>
+            </mat-card-content>
+        </mat-card>
+        <mat-card>
+            <mat-card-header>
+                <mat-card-title><h2>Map</h2></mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+                <form class="formutils__gaps" [formGroup]="mapInfoForm">
+                    <div>
+                        <p class="mat-small">
+                            Automatically loaded from game setup, should be correct, make sure to double-check
+                        </p>
+                        <div class="formutils__two-cols">
+                            <mat-form-field class="fullwidth" subscriptSizing="dynamic">
+                                <mat-label>Map X size</mat-label>
+                                <input matInput type="number" formControlName="xSize" min="0" />
+                            </mat-form-field>
+                            <mat-form-field class="fullwidth" subscriptSizing="dynamic">
+                                <mat-label>Map Y size</mat-label>
+                                <input matInput type="number" formControlName="ySize" min="0" />
+                            </mat-form-field>
+                        </div>
+                        <p class="mat-small two-cols-hint">
+                            You can find those via <code>/show xsize</code> and <code>/show ysize</code>
+                        </p>
+                    </div>
+                    <div>
+                        <p class="mat-small">Automatically loaded from game setup, only shown for reference</p>
+                        <div class="formutils__two-cols">
+                            <mat-checkbox formControlName="wrapX">Wrap X</mat-checkbox>
+                            <mat-checkbox formControlName="wrapY">Wrap Y</mat-checkbox>
+                        </div>
+                    </div>
+                    <div class="formutils__two-cols">
+                        <mat-checkbox formControlName="isometric">ISO map</mat-checkbox>
+                        <mat-checkbox formControlName="hex">Hex map</mat-checkbox>
+                    </div>
+                </form>
+            </mat-card-content>
+        </mat-card>
+    </div>
+    <mat-card>
+        <mat-card-header>
+            <mat-card-title><h2>Results</h2></mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+            <ng-container *ngIf="calculatedBribeCost$ | async as cost; else emptyResult">
+                <p>Calculated bribe cost: {{ cost }}</p>
+            </ng-container>
+            <ng-template #emptyResult>
+                <p>Results will be here</p>
+            </ng-template>
+        </mat-card-content>
+    </mat-card>
+</div>

@@ -81,6 +81,7 @@ export interface VeteranLevel {
     name: string;
     powerFactor: number;
     baseRaiseChance: number;
+    moveBonus: number;
 }
 
 export interface Terrain {
@@ -99,6 +100,7 @@ export interface TerrainExtra {
 }
 
 export interface InciteCosts {
+    baseBribeCost: number;
     baseInciteCost: number;
     improvementFactor: number;
     unitFactor: number;

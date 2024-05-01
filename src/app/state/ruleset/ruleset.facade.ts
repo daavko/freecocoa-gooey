@@ -10,11 +10,21 @@ import { RulesetType } from 'src/app/state/ruleset/ruleset-state-model';
 export class RulesetFacade {
     public readonly rulesetLoadingState$ = this.store.select(rulesetQuery.selectLoadingState);
     public readonly ruleset$ = this.store.select(rulesetQuery.selectRuleset).pipe(filter(notNull));
+    public readonly rulesetSortedUnitTypes$ = this.store
+        .select(rulesetQuery.selectSortedUnitTypes)
+        .pipe(filter(notNull));
+    public readonly gameSettings$ = this.store.select(rulesetQuery.selectGameSettings).pipe(filter(notNull));
 
     constructor(private store: Store) {}
 
-    public loadRuleset(baseUrl: string, type: RulesetType, label: string): void {
-        this.store.dispatch(rulesetActions.loadRuleset({ baseUrl, rulesetType: type, label }));
+    public loadRuleset(
+        baseUrl: string,
+        settingsUrl: string,
+        playersUrl: string,
+        type: RulesetType,
+        label: string
+    ): void {
+        this.store.dispatch(rulesetActions.loadRuleset({ baseUrl, settingsUrl, playersUrl, rulesetType: type, label }));
     }
 
     public reset(): void {

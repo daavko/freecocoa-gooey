@@ -31,9 +31,16 @@ import {
     findGuaranteedEntry,
     findGuaranteedSection,
     findPossibleEntry,
+    findPossibleSection,
     rawValueAsNumber,
     rawValueAsString
 } from 'src/app/services/parser/freeciv-ini-ast-utils';
+import {
+    DEFAULT_GAME_SETTINGS,
+    GameSettings,
+    settingsStringToMapSize,
+    settingsStringToTopology
+} from 'src/app/models/game-settings.model';
 
 @Injectable({
     providedIn: 'root'
@@ -44,7 +51,7 @@ export class RulesetFetchService {
 
     constructor(private http: HttpClient) {}
 
-    public fetchRuleset(baseUrl: string): Observable<Ruleset> {
+    public fetchRuleset(baseUrl: string, settingsUrl: string, playersUrl: string): Observable<[Ruleset, GameSettings]> {
         if (baseUrl.endsWith('/')) {
             baseUrl = baseUrl.slice(0, -1);
         }
@@ -56,28 +63,63 @@ export class RulesetFetchService {
         const buildingsFile$ = this.fetchFile(baseUrl, 'buildings.ruleset');
         const citiesFile$ = this.fetchFile(baseUrl, 'cities.ruleset');
 
-        return combineLatest([effectsFile$, terrainFile$, unitsFile$, gameFile$, buildingsFile$, citiesFile$]).pipe(
-            map(([effectsFile, terrainFile, unitsFile, gameFile, buildingsFile, citiesFile]) => {
-                const [unitClasses, unitTypes, defaultVeteranLevels] = this.extractUnitsFile(unitsFile);
-                const [terrainTypes, terrainExtras, moveFrags] = this.extractTerrainFile(terrainFile);
-                const effects = this.extractEffectsFile(effectsFile);
-                const inciteCosts = this.extractGameFile(gameFile);
-                const buildings = this.extractBuildingsFile(buildingsFile);
-                const [cityParameters, citizenSettings] = this.extractCitiesFile(citiesFile);
-                return {
-                    effects,
-                    unitTypes,
-                    unitClasses,
-                    defaultVeteranLevels,
-                    terrainTypes,
-                    terrainExtras,
-                    moveFrags,
-                    inciteCosts,
-                    buildings,
-                    cityParameters,
-                    citizenSettings
-                };
-            })
+        const settingsFile$ = this.fetchSettingsFile(settingsUrl);
+        const playersFile$ = this.fetchSettingsFile(playersUrl);
+
+        return combineLatest([
+            effectsFile$,
+            terrainFile$,
+            unitsFile$,
+            gameFile$,
+            buildingsFile$,
+            citiesFile$,
+            settingsFile$,
+            playersFile$
+        ]).pipe(
+            map(
+                ([
+                    effectsFile,
+                    terrainFile,
+                    unitsFile,
+                    gameFile,
+                    buildingsFile,
+                    citiesFile,
+                    settingsFile,
+                    playersFile
+                ]) => {
+                    const [unitClasses, unitTypes, defaultVeteranLevels] = this.extractUnitsFile(unitsFile);
+                    const [terrainTypes, terrainExtras, moveFrags] = this.extractTerrainFile(terrainFile);
+                    const effects = this.extractEffectsFile(effectsFile);
+                    const [inciteCosts, rulesetGameSettings] = this.extractGameFile(gameFile);
+                    const buildings = this.extractBuildingsFile(buildingsFile);
+                    const [cityParameters, citizenSettings] = this.extractCitiesFile(citiesFile);
+
+                    const gameSettings = this.extractSettingsFile(settingsFile);
+                    const playersSettings = this.extractSettingsFile(playersFile);
+
+                    return [
+                        {
+                            effects,
+                            unitTypes,
+                            unitClasses,
+                            defaultVeteranLevels,
+                            terrainTypes,
+                            terrainExtras,
+                            moveFrags,
+                            inciteCosts,
+                            buildings,
+                            cityParameters,
+                            citizenSettings
+                        },
+                        {
+                            ...DEFAULT_GAME_SETTINGS,
+                            ...rulesetGameSettings,
+                            ...gameSettings,
+                            ...playersSettings
+                        }
+                    ];
+                }
+            )
         );
     }
 
@@ -102,6 +144,31 @@ export class RulesetFetchService {
         }
 
         return this.cstVisitor.visit(parsedFile) as IniFile;
+    }
+
+    private fetchSettingsFile(settingsUrl: string): Observable<Record<string, string | undefined>> {
+        return this.http.get(settingsUrl, { responseType: 'text' }).pipe(map((file) => this.parseSettingsFile(file)));
+    }
+
+    private parseSettingsFile(file: string): Record<string, string | undefined> {
+        const lineRegex = /^set (?<name>\w+) ((?<value>[^"\t ]+)|"(?<valuequoted>[^\t "]+)")([\t ]+#.+)?$/;
+        const ret: Record<string, string | undefined> = {};
+        for (const line of file.split(/[\r\n]+/)) {
+            const match = line.match(lineRegex);
+            if (match === null) {
+                continue;
+            }
+
+            const name = match.groups?.['name'];
+            const value = match.groups?.['value'] ?? match.groups?.['valuequoted'];
+
+            if (name === undefined || value === undefined) {
+                continue;
+            }
+
+            ret[name] = value;
+        }
+        return ret;
     }
 
     private extractEffectsFile(file: IniFile): Effect[] {
@@ -185,7 +252,8 @@ export class RulesetFetchService {
     private mergeVeterancyNamesAndPowerFactors(
         names: IniValueList,
         powerFactors: IniValueList,
-        baseRaiseChances: IniValueList
+        baseRaiseChances: IniValueList,
+        moveBonuses: IniValueList
     ): VeteranLevel[] {
         if (names.length !== powerFactors.length) {
             throw new Error('Found veterancy names and power factors of differing lengths');
@@ -194,7 +262,8 @@ export class RulesetFetchService {
         return names.map((name, i) => ({
             name: this.cleanTranslatableName(rawValueAsString(name)),
             powerFactor: rawValueAsNumber(powerFactors[i]),
-            baseRaiseChance: rawValueAsNumber(baseRaiseChances[i])
+            baseRaiseChance: rawValueAsNumber(baseRaiseChances[i]),
+            moveBonus: rawValueAsNumber(moveBonuses[i])
         }));
     }
 
@@ -246,19 +315,23 @@ export class RulesetFetchService {
                 const vetNamesEntry = findPossibleEntry(section, 'veteran_names');
                 const vetPowerFactsEntry = findPossibleEntry(section, 'veteran_power_fact');
                 const vetBaseRaiseChancesEntry = findPossibleEntry(section, 'veteran_base_raise_chance');
+                const vetMoveBonusesEntry = findPossibleEntry(section, 'veteran_move_bonus');
                 let veteranLevels: VeteranLevel[] = [];
                 if (
                     vetNamesEntry !== undefined &&
                     vetPowerFactsEntry !== undefined &&
-                    vetBaseRaiseChancesEntry !== undefined
+                    vetBaseRaiseChancesEntry !== undefined &&
+                    vetMoveBonusesEntry !== undefined
                 ) {
                     const vetNames = entryValueAsValueList(vetNamesEntry);
                     const vetPowerFacts = entryValueAsValueList(vetPowerFactsEntry);
                     const vetBaseRaiseChances = entryValueAsValueList(vetBaseRaiseChancesEntry);
+                    const vetMoveBonuses = entryValueAsValueList(vetMoveBonusesEntry);
                     veteranLevels = this.mergeVeterancyNamesAndPowerFactors(
                         vetNames,
                         vetPowerFacts,
-                        vetBaseRaiseChances
+                        vetBaseRaiseChances,
+                        vetMoveBonuses
                     );
                 }
 
@@ -284,7 +357,13 @@ export class RulesetFetchService {
         const vetBaseRaiseChances = entryValueAsValueList(
             findGuaranteedEntry(veteranSystemSection, 'veteran_base_raise_chance')
         );
-        const vetLevels = this.mergeVeterancyNamesAndPowerFactors(vetNames, vetPowerFacts, vetBaseRaiseChances);
+        const vetMoveBonuses = entryValueAsValueList(findGuaranteedEntry(veteranSystemSection, 'veteran_move_bonus'));
+        const vetLevels = this.mergeVeterancyNamesAndPowerFactors(
+            vetNames,
+            vetPowerFacts,
+            vetBaseRaiseChances,
+            vetMoveBonuses
+        );
 
         // this makes things way easier in other parts of code
         for (const unitType of unitTypes) {
@@ -357,19 +436,53 @@ export class RulesetFetchService {
         return [terrains, terrainExtras, entryValueAsNumber(moveFragsEntry)];
     }
 
-    private extractGameFile(file: IniFile): InciteCosts {
+    private extractGameFile(file: IniFile): [InciteCosts, Partial<GameSettings>] {
         const inciteCostSection = findGuaranteedSection(file, 'incite_cost');
         const baseInciteCostEntry = findGuaranteedEntry(inciteCostSection, 'base_incite_cost');
         const improvementFactorEntry = findGuaranteedEntry(inciteCostSection, 'improvement_factor');
         const unitFactorEntry = findGuaranteedEntry(inciteCostSection, 'unit_factor');
         const totalFactorEntry = findGuaranteedEntry(inciteCostSection, 'total_factor');
 
-        return {
-            baseInciteCost: entryValueAsNumber(baseInciteCostEntry),
-            improvementFactor: entryValueAsNumber(improvementFactorEntry),
-            unitFactor: entryValueAsNumber(unitFactorEntry),
-            totalFactor: entryValueAsNumber(totalFactorEntry)
-        };
+        const civstyleSection = findGuaranteedSection(file, 'civstyle');
+        const baseBribeCostEntry = findGuaranteedEntry(civstyleSection, 'base_bribe_cost');
+
+        const gameSettings: Partial<GameSettings> = {};
+        const settingsSection = findPossibleSection(file, 'settings');
+        if (settingsSection !== undefined) {
+            const setEntry = findPossibleEntry(settingsSection, 'set');
+            if (setEntry !== undefined) {
+                const setTable = entryValueAsTable(setEntry);
+                const nameIndex = setTable.heading.indexOf('name');
+                const valueIndex = setTable.heading.indexOf('value');
+
+                if (nameIndex === -1 || valueIndex === -1) {
+                    throw new Error('Could not find name or value column in settings table');
+                }
+
+                for (const row of setTable.rows) {
+                    const name = rawValueAsString(row[nameIndex]);
+                    switch (name) {
+                        case 'topology':
+                            gameSettings.topology = settingsStringToTopology(rawValueAsString(row[valueIndex]));
+                            break;
+                        case 'shieldbox':
+                            gameSettings.shieldbox = rawValueAsNumber(row[valueIndex]);
+                            break;
+                    }
+                }
+            }
+        }
+
+        return [
+            {
+                baseBribeCost: entryValueAsNumber(baseBribeCostEntry),
+                baseInciteCost: entryValueAsNumber(baseInciteCostEntry),
+                improvementFactor: entryValueAsNumber(improvementFactorEntry),
+                unitFactor: entryValueAsNumber(unitFactorEntry),
+                totalFactor: entryValueAsNumber(totalFactorEntry)
+            },
+            gameSettings
+        ];
     }
 
     private extractBuildingsFile(file: IniFile): Building[] {
@@ -403,6 +516,57 @@ export class RulesetFetchService {
                 nationality: entryValueAsBoolean(nationalityEntry)
             }
         ];
+    }
+
+    private extractSettingsFile(file: Record<string, string | undefined>): Partial<GameSettings> {
+        const gameSettings: Partial<GameSettings> = {};
+
+        const topology = file['topology'];
+        if (topology !== undefined) {
+            gameSettings.topology = settingsStringToTopology(topology);
+        }
+
+        const shieldbox = file['shieldbox'];
+        if (shieldbox !== undefined) {
+            gameSettings.shieldbox = parseInt(shieldbox, 10);
+        }
+
+        const aifill = file['aifill'];
+        if (aifill !== undefined) {
+            gameSettings.aifill = parseInt(aifill, 10);
+        }
+
+        const mapsize = file['mapsize'];
+        if (mapsize !== undefined) {
+            gameSettings.mapsize = settingsStringToMapSize(mapsize);
+        }
+
+        const xsize = file['xsize'];
+        if (xsize !== undefined) {
+            gameSettings.xsize = parseInt(xsize, 10);
+        }
+
+        const ysize = file['ysize'];
+        if (ysize !== undefined) {
+            gameSettings.ysize = parseInt(ysize, 10);
+        }
+
+        const size = file['size'];
+        if (size !== undefined) {
+            gameSettings.size = parseInt(size, 10);
+        }
+
+        const tilesperplayer = file['tilesperplayer'];
+        if (tilesperplayer !== undefined) {
+            gameSettings.tilesperplayer = parseInt(tilesperplayer, 10);
+        }
+
+        const landmass = file['landmass'];
+        if (landmass !== undefined) {
+            gameSettings.landmass = parseInt(landmass, 10);
+        }
+
+        return gameSettings;
     }
 
     private cleanTranslatableName(name: string): string {
