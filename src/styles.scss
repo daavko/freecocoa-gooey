@@ -63,3 +63,9 @@ a {
 .select-10-values.mat-mdc-select-panel {
     max-height: 520px !important;
 }
+
+.mdc-snackbar.ruleset-load-error-snackbar {
+    --mdc-snackbar-container-color: #{mat.get-color-from-palette(theme.$warn-palette, 400)};
+    --mdc-snackbar-supporting-text-color: #{mat.get-color-from-palette(theme.$warn-palette, '400-contrast')};
+    --mat-mdc-snack-bar-button-color: #{mat.get-color-from-palette(theme.$warn-palette, '400-contrast')};
+}
