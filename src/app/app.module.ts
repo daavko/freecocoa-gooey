@@ -15,6 +15,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSliderModule } from '@angular/material/slider';
 import { MatIconModule } from '@angular/material/icon';
 import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MAT_FORM_FIELD_DEFAULT_OPTIONS } from '@angular/material/form-field';
 
 // ngrx
@@ -74,6 +75,7 @@ import { appStateAppImports } from 'src/app/state/app/public-api';
         MatCardModule,
         MatIconModule,
         MatToolbarModule,
+        MatSnackBarModule,
         StoreModule.forRoot({}, {}),
         EffectsModule.forRoot([]),
         !environment.production ? StoreDevtoolsModule.instrument({ maxAge: 25 }) : [],
