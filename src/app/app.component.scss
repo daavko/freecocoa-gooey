@@ -3,6 +3,7 @@
 
 :host {
     display: block;
+    min-height: 100%;
 }
 
 .toolbar {
@@ -23,9 +24,10 @@
 
 .app-container {
     padding: 16px;
-}
-
-.content-container {
-    max-width: 1400px;
-    margin-inline: auto;
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1400px);
+    gap: 16px;
+    justify-content: center;
+    height: calc(100dvh - 60px);
 }

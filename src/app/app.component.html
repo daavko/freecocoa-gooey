@@ -18,12 +18,20 @@
     </div>
 </mat-toolbar>
 <div class="app-container">
-    <div class="content-container" [ngSwitch]="screen$ | async">
+    <ng-container [ngSwitch]="screen$ | async">
         <app-ruleset-picker *ngSwitchCase="'rulesetPick'"></app-ruleset-picker>
         <app-tool-picker *ngSwitchCase="'toolPick'"></app-tool-picker>
         <app-combat-simulator *ngSwitchCase="'combatSim'"></app-combat-simulator>
         <app-battle-simulator *ngSwitchCase="'battleSim'"></app-battle-simulator>
         <app-bribe-cost-calculator *ngSwitchCase="'bribeCostCalc'"></app-bribe-cost-calculator>
         <app-incite-cost-calculator *ngSwitchCase="'inciteCostCalc'"></app-incite-cost-calculator>
-    </div>
+    </ng-container>
+    <p class="nomargin">
+        Calculations are based on the
+        <a href="https://github.com/longturn/freeciv21" target="_blank">Freeciv21 source code</a>, and tailored to LTT
+        and LTX rulesets. Calculations are not guaranteed to be 100% accurate (though they should be, in most cases).
+        <br />
+        Source code for this tool can be found on
+        <a href="https://github.com/daavko/freecocoa-gooey" target="_blank">GitHub</a>.
+    </p>
 </div>
