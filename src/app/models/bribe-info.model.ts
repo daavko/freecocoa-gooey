@@ -11,3 +11,7 @@ export interface BribeUnitInfo {
     mapSize: MapSize;
     mapInfo: MapInfo;
 }
+
+export interface BribeCostResult {
+    cost: number;
+}
