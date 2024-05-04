@@ -209,6 +209,15 @@ export class RulesetFetchService {
             };
 
             for (let i = 0; i < table.heading.length; i++) {
+                if (row.length <= i) {
+                    if (requirementEntry.type === '' && requirementEntry.name === '') {
+                        throw new Error('Found empty requirement entry');
+                    } else {
+                        // row is shorter than heading, but that's fine because we have default values
+                        break;
+                    }
+                }
+
                 const heading = table.heading[i];
                 const value = row[i];
                 switch (heading) {
