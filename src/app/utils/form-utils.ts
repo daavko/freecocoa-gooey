@@ -1,4 +1,4 @@
-import { ValidationErrors, ValidatorFn } from '@angular/forms';
+import { AbstractControl, FormControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 
 export const isValidUrl: ValidatorFn = (control): ValidationErrors | null => {
     const value: unknown = control.value;
@@ -42,3 +42,35 @@ export const maxOther =
         }
         return control.value >= other.value ? { maxOther: true } : null;
     };
+
+export function addErrorIfNotPresent(control: AbstractControl, errorName: string): void {
+    if (!control.hasError(errorName)) {
+        control.setErrors({
+            ...control.errors,
+            [errorName]: true
+        });
+    }
+}
+
+export function removeErrorIfPresent(control: AbstractControl, errorName: string): void {
+    if (control.hasError(errorName)) {
+        const errors = { ...control.errors };
+        delete errors[errorName];
+        control.setErrors(Object.keys(errors).length > 0 ? errors : null);
+    }
+}
+
+export function passErrorToDescendants(
+    parentControl: AbstractControl,
+    children: AbstractControl[],
+    errorName: string
+): void {
+    if (parentControl.hasError(errorName)) {
+        children.forEach((child) => {
+            addErrorIfNotPresent(child, errorName);
+            child.markAsTouched();
+        });
+    } else {
+        children.forEach((child) => removeErrorIfPresent(child, errorName));
+    }
+}

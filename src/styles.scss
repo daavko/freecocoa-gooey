@@ -71,6 +71,10 @@ a {
     text-align: right;
 }
 
+.text-warn {
+    color: #{mat.get-color-from-palette(theme.$warn-palette, 400)};
+}
+
 .mat-form-field-height-compensation {
     margin: 0.25em 0;
     padding-bottom: 1.34375em;

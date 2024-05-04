@@ -12,6 +12,9 @@ export class RulesetFacade {
     public readonly rulesetSortedUnitTypes$ = this.store
         .select(rulesetQuery.selectSortedUnitTypes)
         .pipe(filterNonNullable());
+    public readonly rulesetSortedBuildings$ = this.store
+        .select(rulesetQuery.selectSortedBuildings)
+        .pipe(filterNonNullable());
     public readonly gameSettings$ = this.store.select(rulesetQuery.selectGameSettings).pipe(filterNonNullable());
 
     constructor(private store: Store) {}

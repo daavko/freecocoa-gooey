@@ -14,9 +14,19 @@ const selectSortedUnitTypes = createSelector(selectUnitTypes, (unitTypes) => {
     }
 });
 
+const selectBuildings = createSelector(selectRuleset, (ruleset) => ruleset?.buildings);
+const selectSortedBuildings = createSelector(selectBuildings, (buildings) => {
+    if (buildings == null) {
+        return null;
+    } else {
+        return [...buildings].sort((a, b) => enCollator.compare(a.name, b.name));
+    }
+});
+
 export const rulesetQuery = {
     selectLoadingState,
     selectRuleset,
     selectGameSettings,
-    selectSortedUnitTypes
+    selectSortedUnitTypes,
+    selectSortedBuildings
 };
