@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnDestroy } from '@angular/core';
-import { FormControl, FormGroup, ValidatorFn, Validators } from '@angular/forms';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { RulesetFacade } from 'src/app/state/ruleset/ruleset.facade';
 import { combineLatest, filter, map, Observable, Subject, takeUntil } from 'rxjs';
 import { UnitType, VeteranLevel } from 'src/app/models/ruleset.model';
@@ -7,15 +7,8 @@ import { UnitCalculationService } from 'src/app/services/unit-calculation.servic
 import { DeepNonNullable } from 'src/app/utils/utility-types';
 import { MapService } from 'src/app/services/map.service';
 import { MapInfo } from 'src/app/models/world-info.model';
-
-function maxOther(other: FormControl): ValidatorFn {
-    return (control) => {
-        if (other.value === null || control.value === null) {
-            return null;
-        }
-        return control.value >= other.value ? { maxOther: true } : null;
-    };
-}
+import { maxOther } from 'src/app/utils/form-utils';
+import { BribeCostResult } from 'src/app/models/bribe-info.model';
 
 @Component({
     selector: 'app-bribe-cost-calculator',
@@ -29,7 +22,7 @@ export class BribeCostCalculatorComponent implements OnDestroy {
     public readonly sortedUnitTypes$: Observable<UnitType[]>;
     public readonly availableVeteranLevels$: Observable<VeteranLevel[]>;
     public readonly maxHp$: Observable<number>;
-    public readonly calculatedBribeCost$: Observable<number>;
+    public readonly bribeCostResult$: Observable<BribeCostResult>;
 
     public readonly mapInfoForm = new FormGroup({
         xSize: new FormControl<number>(0, { nonNullable: true, validators: [Validators.required] }),
@@ -106,7 +99,7 @@ export class BribeCostCalculatorComponent implements OnDestroy {
             });
         });
 
-        this.calculatedBribeCost$ = combineLatest([
+        this.bribeCostResult$ = combineLatest([
             this.bribedUnitForm.valueChanges.pipe(
                 filter(
                     (v): v is DeepNonNullable<Required<typeof v>> =>

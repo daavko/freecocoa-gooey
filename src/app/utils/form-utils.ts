@@ -33,3 +33,12 @@ export const noGithubComUrl: ValidatorFn = (control): ValidationErrors | null =>
 
     return null;
 };
+
+export const maxOther =
+    (other: FormControl): ValidatorFn =>
+    (control): ValidationErrors | null => {
+        if (other.value === null || control.value === null) {
+            return null;
+        }
+        return control.value >= other.value ? { maxOther: true } : null;
+    };

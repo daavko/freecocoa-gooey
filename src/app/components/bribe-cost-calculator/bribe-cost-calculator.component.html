@@ -145,6 +145,7 @@
                             You can find those via <code>/show xsize</code> and <code>/show ysize</code>
                         </p>
                     </div>
+                    <hr />
                     <div>
                         <p class="mat-small">Automatically loaded from game setup, only shown for reference</p>
                         <div class="formutils__two-cols">
@@ -165,8 +166,8 @@
             <mat-card-title><h2>Results</h2></mat-card-title>
         </mat-card-header>
         <mat-card-content>
-            <ng-container *ngIf="calculatedBribeCost$ | async as cost; else emptyResult">
-                <p>Calculated bribe cost: {{ cost }}</p>
+            <ng-container *ngIf="bribeCostResult$ | async as result; else emptyResult">
+                <p>Calculated bribe cost: {{ result.cost }}</p>
             </ng-container>
             <ng-template #emptyResult>
                 <p>Results will be here</p>
