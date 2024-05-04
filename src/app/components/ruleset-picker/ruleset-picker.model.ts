@@ -25,6 +25,13 @@ export const rulesetPresets: RulesetPreset[] = [
         baseUrl: `${longturnLttLtxUrlBase}/LTX/data/LTX`
     },
     {
+        name: 'royale',
+        label: 'Royale',
+        settingsUrl: `${longturnLttLtxUrlBase}/Royale/Royale.serv`,
+        playersUrl: `${longturnLttLtxUrlBase}/Royale/players.serv`,
+        baseUrl: `${longturnLttLtxUrlBase}/Royale/data/Royale`
+    },
+    {
         name: 'lt81',
         label: 'LT81 LTX snapshot',
         settingsUrl: `${longturnGamesUrlBase}/LT81/LT81.serv`,
@@ -51,5 +58,12 @@ export const rulesetPresets: RulesetPreset[] = [
         settingsUrl: `${longturnGamesUrlBase}/LT83/LT83.serv`,
         playersUrl: `${longturnGamesUrlBase}/LT83/players.serv`,
         baseUrl: `${longturnGamesUrlBase}/LT83/data/LT83`
+    },
+    {
+        name: 'lt84',
+        label: 'LT84 Royale snapshot',
+        settingsUrl: `${longturnGamesUrlBase}/LT84/LT84.serv`,
+        playersUrl: `${longturnGamesUrlBase}/LT84/players.serv`,
+        baseUrl: `${longturnGamesUrlBase}/LT84/data/LT84`
     }
 ];
