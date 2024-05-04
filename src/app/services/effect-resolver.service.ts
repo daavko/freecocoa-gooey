@@ -145,9 +145,14 @@ export class EffectResolverService {
                     }
                     case 'MaxUnitsOnTile': {
                         roundPassed =
-                            req.range === RequirementRange.LOCAL && unitsOnTile === Number.parseInt(req.range);
+                            req.range === RequirementRange.LOCAL && unitsOnTile <= Number.parseInt(req.name)
+                                ? req.present
+                                : !req.present;
                         break;
                     }
+                    case 'AI':
+                        applies = false;
+                        break;
                     default:
                         // unknown restriction, bail out
                         applies = false;

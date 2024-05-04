@@ -1,1 +1,321 @@
-<p>Coming soon<sup>TM</sup></p>
+<p>
+    Note: This calculator doesn't make any assumptions about the target player's government or wonders. Some governments
+    and wonders may prevent you from inciting cities altogether.
+</p>
+<p class="text-warn">
+    WARNING: This calculator has not yet been tested as rigorously as other parts of Gooey. It <em>should</em> output
+    correct values, but it's possible that it doesn't. If you find any issues, please report them to @daavko on Discord.
+</p>
+<div class="incite-calculator-container">
+    <div class="vertical-gapped">
+        <mat-card>
+            <mat-card-header>
+                <mat-card-title><h2>City</h2></mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+                <form class="formutils__gaps" [formGroup]="cityInfoForm">
+                    <mat-form-field class="fullwidth" subscriptSizing="dynamic">
+                        <mat-label>City size</mat-label>
+                        <input matInput type="number" formControlName="size" />
+                        <mat-error *ngIf="cityInfoForm.controls.size.errors?.['required']"
+                            >City size is required</mat-error
+                        >
+                        <mat-error *ngIf="cityInfoForm.controls.size.errors?.['min']">Must be at least 1</mat-error>
+                    </mat-form-field>
+                    <div class="formutils__two-cols">
+                        <mat-form-field class="fullwidth" subscriptSizing="dynamic">
+                            <mat-label>Happy citizens</mat-label>
+                            <input matInput type="number" formControlName="happyCitizens" />
+                            <mat-error *ngIf="cityInfoForm.controls.happyCitizens.errors?.['required']"
+                                >Happy citizens is required</mat-error
+                            >
+                            <mat-error *ngIf="cityInfoForm.controls.happyCitizens.errors?.['min']"
+                                >Can't be negative</mat-error
+                            >
+                        </mat-form-field>
+                        <mat-form-field class="fullwidth" subscriptSizing="dynamic">
+                            <mat-label>Content citizens</mat-label>
+                            <input matInput type="number" formControlName="contentCitizens" />
+                            <mat-error *ngIf="cityInfoForm.controls.contentCitizens.errors?.['required']"
+                                >Content citizens is required</mat-error
+                            >
+                            <mat-error *ngIf="cityInfoForm.controls.contentCitizens.errors?.['min']"
+                                >Can't be negative</mat-error
+                            >
+                        </mat-form-field>
+                    </div>
+                    <div class="formutils__two-cols">
+                        <mat-form-field class="fullwidth" subscriptSizing="dynamic">
+                            <mat-label>Unhappy citizens</mat-label>
+                            <input matInput type="number" formControlName="unhappyCitizens" />
+                            <mat-error *ngIf="cityInfoForm.controls.unhappyCitizens.errors?.['required']"
+                                >Unhappy citizens is required</mat-error
+                            >
+                            <mat-error *ngIf="cityInfoForm.controls.unhappyCitizens.errors?.['min']"
+                                >Can't be negative</mat-error
+                            >
+                        </mat-form-field>
+                        <mat-form-field class="fullwidth" subscriptSizing="dynamic">
+                            <mat-label>Angry citizens</mat-label>
+                            <input matInput type="number" formControlName="angryCitizens" />
+                            <mat-error *ngIf="cityInfoForm.controls.angryCitizens.errors?.['required']"
+                                >Angry citizens is required</mat-error
+                            >
+                            <mat-error *ngIf="cityInfoForm.controls.angryCitizens.errors?.['min']"
+                                >Can't be negative</mat-error
+                            >
+                        </mat-form-field>
+                    </div>
+                    <p class="nomargin text-warn" *ngIf="cityInfoForm.errors?.['happinessDoesNotMatchSize']">
+                        City size must be equal to the number of citizens of all moods combined!
+                    </p>
+                    <p class="nomargin text-warn" *ngIf="cityInfoForm.errors?.['nationalitiesDoNotMatchSize']">
+                        City size must be equal to the number of citizens of all nationalities combined!
+                    </p>
+                    <hr />
+                    <div class="formutils__two-cols">
+                        <mat-form-field class="fullwidth" subscriptSizing="dynamic">
+                            <mat-label>City X coordinate</mat-label>
+                            <input matInput type="number" formControlName="xCoordinate" />
+                            <mat-error *ngIf="cityInfoForm.controls.xCoordinate.errors?.['required']"
+                                >City X coordinate is required</mat-error
+                            >
+                            <mat-error *ngIf="cityInfoForm.controls.xCoordinate.errors?.['min']"
+                                >Can't be negative</mat-error
+                            >
+                        </mat-form-field>
+                        <mat-form-field class="fullwidth" subscriptSizing="dynamic">
+                            <mat-label>City Y coordinate</mat-label>
+                            <input matInput type="number" formControlName="yCoordinate" />
+                            <mat-error *ngIf="cityInfoForm.controls.yCoordinate.errors?.['required']"
+                                >City Y coordinate is required</mat-error
+                            >
+                            <mat-error *ngIf="cityInfoForm.controls.yCoordinate.errors?.['min']"
+                                >Can't be negative</mat-error
+                            >
+                        </mat-form-field>
+                    </div>
+                </form>
+            </mat-card-content>
+        </mat-card>
+        <mat-card>
+            <mat-card-header>
+                <mat-card-title><h2>Units in city</h2></mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+                <p>Note: City inciting doesn't care about veteran levels</p>
+                <form class="formutils__gaps" [formGroup]="unitsForm">
+                    <ng-container formArrayName="units">
+                        <div
+                            *ngFor="let unitFormGroup of unitsFormGroups; let i = index"
+                            [formGroupName]="i"
+                            class="unit-row">
+                            <mat-form-field class="fullwidth" subscriptSizing="dynamic">
+                                <mat-label>Unit type</mat-label>
+                                <mat-select formControlName="unitType" panelClass="select-10-values">
+                                    <mat-option *ngFor="let unitType of unitTypes$ | async" [value]="unitType">{{
+                                        unitType.name
+                                    }}</mat-option>
+                                </mat-select>
+                            </mat-form-field>
+                            <mat-form-field class="fullwidth" subscriptSizing="dynamic">
+                                <mat-label>Unit count</mat-label>
+                                <input matInput type="number" formControlName="unitCount" />
+                                <mat-error *ngIf="unitFormGroup.controls.unitCount.errors?.['required']"
+                                    >Unit count is required</mat-error
+                                >
+                                <mat-error *ngIf="unitFormGroup.controls.unitCount.errors?.['min']"
+                                    >Must be at least 1</mat-error
+                                >
+                            </mat-form-field>
+                            <button type="button" mat-icon-button color="warn" (click)="removeUnit(i)">
+                                <mat-icon>delete</mat-icon>
+                            </button>
+                        </div>
+                    </ng-container>
+                </form>
+            </mat-card-content>
+            <mat-card-actions align="end">
+                <button type="button" mat-button color="accent" (click)="addUnit()">Add unit type</button>
+            </mat-card-actions>
+        </mat-card>
+        <mat-card>
+            <mat-card-header>
+                <mat-card-title><h2>Buildings in city</h2></mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+                <form class="formutils__gaps" [formGroup]="buildingsForm">
+                    <mat-form-field class="fullwidth" subscriptSizing="dynamic">
+                        <mat-label>City buildings</mat-label>
+                        <mat-select multiple formControlName="buildings" panelClass="select-10-values">
+                            <mat-option *ngFor="let building of buildings$ | async" [value]="building">{{
+                                building.name
+                            }}</mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                </form>
+            </mat-card-content>
+        </mat-card>
+    </div>
+    <div class="vertical-gapped">
+        <mat-card *ngIf="(nationalityEnabled$ | async) === false">
+            <mat-card-header>
+                <mat-card-title><h2>City ownership</h2></mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+                <form>
+                    <mat-form-field class="fullwidth" subscriptSizing="dynamic">
+                        <mat-label>Original owner of the city</mat-label>
+                        <mat-select panelClass="select-10-values">
+                            <mat-option [value]="1">Current owner</mat-option>
+                            <mat-option [value]="2">Player inciting the city</mat-option>
+                            <mat-option [value]="3">Anyone else else</mat-option>
+                        </mat-select>
+                        <mat-hint align="end">Who built the city</mat-hint>
+                    </mat-form-field>
+                </form>
+            </mat-card-content>
+        </mat-card>
+        <mat-card *ngIf="(nationalityEnabled$ | async) === true">
+            <mat-card-header>
+                <mat-card-title><h2>Nationality</h2></mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+                <form class="formutils__gaps" [formGroup]="cityNationalityForm">
+                    <mat-form-field class="fullwidth" subscriptSizing="dynamic">
+                        <mat-label>Inciter</mat-label>
+                        <input matInput type="number" formControlName="inciter" />
+                        <mat-hint align="end">How many citizens have <strong>your</strong> nationality</mat-hint>
+                        <mat-error *ngIf="cityNationalityForm.controls.inciter.errors?.['required']"
+                            >Inciter nationality count is required</mat-error
+                        >
+                        <mat-error *ngIf="cityNationalityForm.controls.inciter.errors?.['min']"
+                            >Can't be negative</mat-error
+                        >
+                    </mat-form-field>
+                    <mat-form-field class="fullwidth" subscriptSizing="dynamic">
+                        <mat-label>Current owner</mat-label>
+                        <input matInput type="number" formControlName="currentOwner" />
+                        <mat-hint align="end"
+                            >How many citizens have the <strong>current owner</strong>'s nationality</mat-hint
+                        >
+                        <mat-error *ngIf="cityNationalityForm.controls.currentOwner.errors?.['required']"
+                            >Current owner nationality count is required</mat-error
+                        >
+                        <mat-error *ngIf="cityNationalityForm.controls.currentOwner.errors?.['min']"
+                            >Can't be negative</mat-error
+                        >
+                    </mat-form-field>
+                    <mat-form-field class="fullwidth" subscriptSizing="dynamic">
+                        <mat-label>Third parties</mat-label>
+                        <input matInput type="number" formControlName="thirdParties" />
+                        <mat-hint align="end">How many citizens have <strong>any other</strong> nationality</mat-hint>
+                        <mat-error *ngIf="cityNationalityForm.controls.thirdParties.errors?.['required']"
+                            >Third parties nationality count is required</mat-error
+                        >
+                        <mat-error *ngIf="cityNationalityForm.controls.thirdParties.errors?.['min']"
+                            >Can't be negative</mat-error
+                        >
+                    </mat-form-field>
+                    <p class="nomargin text-warn" *ngIf="cityNationalityForm.errors?.['nationalitiesDoNotMatchSize']">
+                        The number of citizens of all nationalities combined must add up to the city size!
+                    </p>
+                </form>
+            </mat-card-content>
+        </mat-card>
+        <mat-card>
+            <mat-card-header>
+                <mat-card-title><h2>Player</h2></mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+                <form class="formutils__gaps" [formGroup]="cityOwnerForm">
+                    <mat-form-field class="fullwidth" subscriptSizing="dynamic">
+                        <mat-label>Gold</mat-label>
+                        <input matInput type="number" formControlName="gold" />
+                        <mat-error *ngIf="cityOwnerForm.controls.gold.errors?.['required']">Gold is required</mat-error>
+                        <mat-error *ngIf="cityOwnerForm.controls.gold.errors?.['min']"
+                            >Can't have negative gold</mat-error
+                        >
+                    </mat-form-field>
+                    <div class="formutils__two-cols">
+                        <mat-form-field class="fullwidth" subscriptSizing="dynamic">
+                            <mat-label>Capital X coordinate</mat-label>
+                            <input matInput type="number" formControlName="capitalXCoordinate" />
+                            <mat-error *ngIf="cityOwnerForm.controls.capitalXCoordinate.errors?.['required']"
+                                >Capital X coordinate is required</mat-error
+                            >
+                            <mat-error *ngIf="cityOwnerForm.controls.capitalXCoordinate.errors?.['min']"
+                                >Can't be negative</mat-error
+                            >
+                        </mat-form-field>
+                        <mat-form-field class="fullwidth" subscriptSizing="dynamic">
+                            <mat-label>Capital Y coordinate</mat-label>
+                            <input matInput type="number" formControlName="capitalYCoordinate" />
+                            <mat-error *ngIf="cityOwnerForm.controls.capitalYCoordinate.errors?.['required']"
+                                >Capital Y coordinate is required</mat-error
+                            >
+                            <mat-error *ngIf="cityOwnerForm.controls.capitalYCoordinate.errors?.['min']"
+                                >Can't be negative</mat-error
+                            >
+                        </mat-form-field>
+                    </div>
+                </form>
+            </mat-card-content>
+        </mat-card>
+        <mat-card>
+            <mat-card-header>
+                <mat-card-title><h2>Map</h2></mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+                <form class="formutils__gaps" [formGroup]="mapInfoForm">
+                    <div>
+                        <p class="mat-small">
+                            Automatically loaded from game setup, should be correct, make sure to double-check
+                        </p>
+                        <div class="formutils__two-cols">
+                            <mat-form-field class="fullwidth" subscriptSizing="dynamic">
+                                <mat-label>Map X size</mat-label>
+                                <input matInput type="number" formControlName="xSize" min="0" />
+                            </mat-form-field>
+                            <mat-form-field class="fullwidth" subscriptSizing="dynamic">
+                                <mat-label>Map Y size</mat-label>
+                                <input matInput type="number" formControlName="ySize" min="0" />
+                            </mat-form-field>
+                        </div>
+                        <p class="mat-small two-cols-hint">
+                            You can find those via <code>/show xsize</code> and <code>/show ysize</code>
+                        </p>
+                    </div>
+                    <hr />
+                    <div>
+                        <p class="mat-small">Automatically loaded from game setup, only shown for reference</p>
+                        <div class="formutils__two-cols">
+                            <mat-checkbox formControlName="wrapX">Wrap X</mat-checkbox>
+                            <mat-checkbox formControlName="wrapY">Wrap Y</mat-checkbox>
+                        </div>
+                    </div>
+                    <div class="formutils__two-cols">
+                        <mat-checkbox formControlName="isometric">ISO map</mat-checkbox>
+                        <mat-checkbox formControlName="hex">Hex map</mat-checkbox>
+                    </div>
+                </form>
+            </mat-card-content>
+        </mat-card>
+    </div>
+    <mat-card>
+        <mat-card-header>
+            <mat-card-title><h2>Results</h2></mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+            <ng-container *ngIf="inciteCostResult$ | async as result; else emptyResult">
+                <p *ngIf="result.impossible; else costResult">Inciting is not possible</p>
+                <ng-template #costResult>
+                    <p>Calculated incite cost: {{ result.cost }}</p>
+                </ng-template>
+            </ng-container>
+            <ng-template #emptyResult>
+                <p>Results will be here</p>
+            </ng-template>
+        </mat-card-content>
+    </mat-card>
+</div>
