@@ -302,7 +302,7 @@ export class RulesetFetchService {
                 const firepowerEntry = findGuaranteedEntry(section, 'firepower');
                 const hitpointsEntry = findGuaranteedEntry(section, 'hitpoints');
                 const movesEntry = findGuaranteedEntry(section, 'move_rate');
-                const flagsEntry = findGuaranteedEntry(section, 'flags');
+                const flagsEntry = findPossibleEntry(section, 'flags');
 
                 const bonusesEntry = findPossibleEntry(section, 'bonuses');
                 let bonuses: UnitTypeBonus[] = [];
@@ -354,7 +354,10 @@ export class RulesetFetchService {
                     firepower: entryValueAsNumber(firepowerEntry),
                     hitpoints: entryValueAsNumber(hitpointsEntry),
                     moves: entryValueAsNumber(movesEntry),
-                    flags: entryValueAsValueList(flagsEntry).map((value) => rawValueAsString(value)),
+                    flags:
+                        flagsEntry != null
+                            ? entryValueAsValueList(flagsEntry).map((value) => rawValueAsString(value))
+                            : [],
                     bonuses,
                     veteranLevels
                 };
