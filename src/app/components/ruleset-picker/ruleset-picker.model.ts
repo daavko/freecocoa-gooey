@@ -32,13 +32,6 @@ export const rulesetPresets: RulesetPreset[] = [
         baseUrl: `${longturnLttLtxUrlBase}/Royale/data/Royale`
     },
     {
-        name: 'lt84',
-        label: 'LT84 Royale snapshot',
-        settingsUrl: `${longturnGamesUrlBase}/LT84/LT84.serv`,
-        playersUrl: `${longturnGamesUrlBase}/LT84/players.serv`,
-        baseUrl: `${longturnGamesUrlBase}/LT84/data/LT84`
-    },
-    {
         name: 'lt85',
         label: 'LT85 LTX snapshot',
         settingsUrl: `${longturnGamesUrlBase}/LT85/LT85.serv`,
