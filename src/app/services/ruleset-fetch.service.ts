@@ -450,13 +450,13 @@ export class RulesetFetchService {
 
     private extractGameFile(file: IniFile): [InciteCosts, Partial<GameSettings>] {
         const inciteCostSection = findGuaranteedSection(file, 'incite_cost');
-        const baseInciteCostEntry = findGuaranteedEntry(inciteCostSection, 'base_incite_cost');
-        const improvementFactorEntry = findGuaranteedEntry(inciteCostSection, 'improvement_factor');
-        const unitFactorEntry = findGuaranteedEntry(inciteCostSection, 'unit_factor');
-        const totalFactorEntry = findGuaranteedEntry(inciteCostSection, 'total_factor');
+        const baseInciteCostEntry = findPossibleEntry(inciteCostSection, 'base_incite_cost');
+        const improvementFactorEntry = findPossibleEntry(inciteCostSection, 'improvement_factor');
+        const unitFactorEntry = findPossibleEntry(inciteCostSection, 'unit_factor');
+        const totalFactorEntry = findPossibleEntry(inciteCostSection, 'total_factor');
 
         const civstyleSection = findGuaranteedSection(file, 'civstyle');
-        const baseBribeCostEntry = findGuaranteedEntry(civstyleSection, 'base_bribe_cost');
+        const baseBribeCostEntry = findPossibleEntry(civstyleSection, 'base_bribe_cost');
 
         const gameSettings: Partial<GameSettings> = {};
         const settingsSection = findPossibleSection(file, 'settings');
@@ -487,11 +487,11 @@ export class RulesetFetchService {
 
         return [
             {
-                baseBribeCost: entryValueAsNumber(baseBribeCostEntry),
-                baseInciteCost: entryValueAsNumber(baseInciteCostEntry),
-                improvementFactor: entryValueAsNumber(improvementFactorEntry),
-                unitFactor: entryValueAsNumber(unitFactorEntry),
-                totalFactor: entryValueAsNumber(totalFactorEntry)
+                baseBribeCost: baseBribeCostEntry != null ? entryValueAsNumber(baseBribeCostEntry) : 750,
+                baseInciteCost: baseInciteCostEntry != null ? entryValueAsNumber(baseInciteCostEntry) : 1000,
+                improvementFactor: improvementFactorEntry != null ? entryValueAsNumber(improvementFactorEntry) : 1,
+                unitFactor: unitFactorEntry != null ? entryValueAsNumber(unitFactorEntry) : 2,
+                totalFactor: totalFactorEntry != null ? entryValueAsNumber(totalFactorEntry) : 100
             },
             gameSettings
         ];
@@ -515,14 +515,14 @@ export class RulesetFetchService {
 
     private extractCitiesFile(file: IniFile): [CityParameters, CitizenSettings] {
         const parametersSection = findGuaranteedSection(file, 'parameters');
-        const celebrateSizeLimitEntry = findGuaranteedEntry(parametersSection, 'celebrate_size_limit');
+        const celebrateSizeLimitEntry = findPossibleEntry(parametersSection, 'celebrate_size_limit');
 
         const citizenSection = findGuaranteedSection(file, 'citizen');
         const nationalityEntry = findGuaranteedEntry(citizenSection, 'nationality');
 
         return [
             {
-                celebrateSizeLimit: entryValueAsNumber(celebrateSizeLimitEntry)
+                celebrateSizeLimit: celebrateSizeLimitEntry != null ? entryValueAsNumber(celebrateSizeLimitEntry) : 3
             },
             {
                 nationality: entryValueAsBoolean(nationalityEntry)
