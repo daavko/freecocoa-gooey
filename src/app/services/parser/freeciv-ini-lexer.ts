@@ -43,7 +43,7 @@ const braceClosing = createToken({ name: 'braceClosing', label: '}', pattern: '}
 const fileInclusionMarker = createToken({ name: 'fileInclMark', label: '*', pattern: '*include' });
 
 // names
-const sectionName = createToken({ name: 'sectionName', label: 'sectionName', pattern: /\[[!-Z^-~]+]/ });
+const sectionName = createToken({ name: 'sectionName', label: 'sectionName', pattern: /\[[ !-Z^-~]+]/ });
 const entryName = createToken({
     name: 'entryName',
     label: 'entryName',
