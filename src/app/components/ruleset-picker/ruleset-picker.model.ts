@@ -37,5 +37,19 @@ export const rulesetPresets: RulesetPreset[] = [
         settingsUrl: `${longturnGamesUrlBase}/LT85/LT85.serv`,
         playersUrl: `${longturnGamesUrlBase}/LT85/players.serv`,
         baseUrl: `${longturnGamesUrlBase}/LT85/data/LT85`
+    },
+    {
+        name: 'lt86',
+        label: 'LT86 LTT snapshot',
+        settingsUrl: `${longturnGamesUrlBase}/LT86/LT86.serv`,
+        playersUrl: `${longturnGamesUrlBase}/LT86/players.serv`,
+        baseUrl: `${longturnGamesUrlBase}/LT86/data/LT86`
+    },
+    {
+        name: 'suomipeli2024',
+        label: 'Suomipeli 2024 Royale snapshot',
+        settingsUrl: `${longturnGamesUrlBase}/Suomipeli2024/Suomipeli2024.serv`,
+        playersUrl: `${longturnGamesUrlBase}/Suomipeli2024/players.serv`,
+        baseUrl: `${longturnGamesUrlBase}/Suomipeli2024/data/Suomipeli2024`
     }
 ];
