@@ -32,20 +32,6 @@ export const rulesetPresets: RulesetPreset[] = [
         baseUrl: `${longturnLttLtxUrlBase}/Royale/data/Royale`
     },
     {
-        name: 'lt85',
-        label: 'LT85 LTX snapshot',
-        settingsUrl: `${longturnGamesUrlBase}/LT85/LT85.serv`,
-        playersUrl: `${longturnGamesUrlBase}/LT85/players.serv`,
-        baseUrl: `${longturnGamesUrlBase}/LT85/data/LT85`
-    },
-    {
-        name: 'lt86',
-        label: 'LT86 LTT snapshot',
-        settingsUrl: `${longturnGamesUrlBase}/LT86/LT86.serv`,
-        playersUrl: `${longturnGamesUrlBase}/LT86/players.serv`,
-        baseUrl: `${longturnGamesUrlBase}/LT86/data/LT86`
-    },
-    {
         name: 'lt88',
         label: 'LT88 LTT snapshot',
         settingsUrl: `${longturnGamesUrlBase}/LT88/LT88.serv`,
@@ -53,10 +39,24 @@ export const rulesetPresets: RulesetPreset[] = [
         baseUrl: `${longturnGamesUrlBase}/LT88/data/LT88`
     },
     {
-        name: 'suomipeli2024',
-        label: 'Suomipeli 2024 Royale snapshot',
-        settingsUrl: `${longturnGamesUrlBase}/Suomipeli2024/Suomipeli2024.serv`,
-        playersUrl: `${longturnGamesUrlBase}/Suomipeli2024/players.serv`,
-        baseUrl: `${longturnGamesUrlBase}/Suomipeli2024/data/Suomipeli2024`
+        name: 'lt89',
+        label: 'LT89 LTT snapshot',
+        settingsUrl: `${longturnGamesUrlBase}/LT89/LT89.serv`,
+        playersUrl: `${longturnGamesUrlBase}/LT89/players.serv`,
+        baseUrl: `${longturnGamesUrlBase}/LT89/data/LT89`
+    },
+    {
+        name: 'leagueb3',
+        label: 'League B3 LTT snapshot',
+        settingsUrl: `${longturnGamesUrlBase}/LeagueB3/LeagueB3.serv`,
+        playersUrl: `${longturnGamesUrlBase}/LeagueB3/players.serv`,
+        baseUrl: `${longturnGamesUrlBase}/LeagueB3/data/LeagueB3`
+    },
+    {
+        name: 'sg4',
+        label: 'SG4 snapshot',
+        settingsUrl: `https://raw.githubusercontent.com/longturn/LTT-LTX/game/SG4/LTX/SG4.serv`,
+        playersUrl: `https://raw.githubusercontent.com/longturn/LTT-LTX/game/SG4/LTX/players.serv`,
+        baseUrl: `https://raw.githubusercontent.com/longturn/LTT-LTX/game/SG4/LTX/data/SG4`
     }
 ];
