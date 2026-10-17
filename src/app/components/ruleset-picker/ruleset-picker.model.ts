@@ -32,31 +32,17 @@ export const rulesetPresets: RulesetPreset[] = [
         baseUrl: `${longturnLttLtxUrlBase}/Royale/data/Royale`
     },
     {
-        name: 'lt88',
-        label: 'LT88 LTT snapshot',
-        settingsUrl: `${longturnGamesUrlBase}/LT88/LT88.serv`,
-        playersUrl: `${longturnGamesUrlBase}/LT88/players.serv`,
-        baseUrl: `${longturnGamesUrlBase}/LT88/data/LT88`
+        name: 'lt95',
+        label: 'LT95 snapshot',
+        settingsUrl: `${longturnGamesUrlBase}/LT95/LT95.serv`,
+        playersUrl: `${longturnGamesUrlBase}/LT95/players.serv`,
+        baseUrl: `${longturnGamesUrlBase}/LT95/data/LT95`
     },
     {
-        name: 'lt89',
-        label: 'LT89 LTT snapshot',
-        settingsUrl: `${longturnGamesUrlBase}/LT89/LT89.serv`,
-        playersUrl: `${longturnGamesUrlBase}/LT89/players.serv`,
-        baseUrl: `${longturnGamesUrlBase}/LT89/data/LT89`
-    },
-    {
-        name: 'leagueb3',
-        label: 'League B3 LTT snapshot',
-        settingsUrl: `${longturnGamesUrlBase}/LeagueB3/LeagueB3.serv`,
-        playersUrl: `${longturnGamesUrlBase}/LeagueB3/players.serv`,
-        baseUrl: `${longturnGamesUrlBase}/LeagueB3/data/LeagueB3`
-    },
-    {
-        name: 'sg4',
-        label: 'SG4 snapshot',
-        settingsUrl: `https://raw.githubusercontent.com/longturn/LTT-LTX/game/SG4/LTX/SG4.serv`,
-        playersUrl: `https://raw.githubusercontent.com/longturn/LTT-LTX/game/SG4/LTX/players.serv`,
-        baseUrl: `https://raw.githubusercontent.com/longturn/LTT-LTX/game/SG4/LTX/data/SG4`
+        name: 'lt96',
+        label: 'LT96 snapshot',
+        settingsUrl: `${longturnGamesUrlBase}/LT96/LT96.serv`,
+        playersUrl: `${longturnGamesUrlBase}/LT96/players.serv`,
+        baseUrl: `${longturnGamesUrlBase}/LT96/data/LT96`
     }
 ];
